@@ -1,0 +1,8 @@
+int x = 5
+int y = 6
+tuple k = (x,y)
+print (x,y)
+print k
+k(0) = 1
+print k
+print x
