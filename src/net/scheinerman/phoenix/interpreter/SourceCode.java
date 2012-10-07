@@ -27,7 +27,7 @@ public class SourceCode {
 		public static String extractIndent(String line) {
 			int index;
 			for(index = 0; index < line.length(); index++) {
-				if(!Interpreter.Strings.WHITESPACE.contains(line.charAt(index))) {
+				if(Character.isWhitespace(line.charAt(index))) {
 					break;
 				}
 			}
