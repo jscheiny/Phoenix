@@ -3,48 +3,39 @@ package net.scheinerman.phoenix.variables;
 import java.util.*;
 
 import net.scheinerman.phoenix.exceptions.*;
-import net.scheinerman.phoenix.interpreter.*;
 
-public class TupleVariable extends Variable {
+public class ArrayVariable extends Variable {
 
-	private static final String TYPE_NAME = Interpreter.Strings.TUPLE;
-	
 	private ArrayList<Variable> elements;
 	
-	public TupleVariable(ArrayList<Variable> elements) {
-		super(TYPE_NAME);
-		if(elements == null) {
-			this.elements = new ArrayList<Variable>();
-		} else {
-			this.elements = elements;
+	public ArrayVariable(ArrayList<Variable> variables) {
+		elements = new ArrayList<Variable>(variables.size());
+		boolean first = true;
+		String referenceType = null;
+		for(Variable var : variables) {
+			if(first) {
+				first = false;
+				referenceType = var.getTypeName();
+			} else {
+				if(!var.getTypeName().equals(referenceType)) {
+					throw new SyntaxException("Multiple variable types within array.", null);
+				}
+			}
+			elements.add(var);
 		}
-	}
-	
-	public String toString() {
-		return stringValue();
+		setTypeName("[" + referenceType + "]");
 	}
 	
 	@Override
 	public String stringValue() {
-		String ret = "";
+		String ret = "[";
 		for(int i = 0; i < elements.size(); i++) {
 			ret += elements.get(i).stringValue();
-			if(i != elements.size() - 1) {
-				ret += " ";
-			}
-		}
-		return ret;
-	}
-	
-	public String typeString() {
-		String ret = "(";
-		for(int i = 0; i < elements.size(); i++) {
-			ret += elements.get(i).getTypeName();
 			if(i != elements.size() - 1) {
 				ret += ", ";
 			}
 		}
-		return ret + ")";
+		return ret + "]";
 	}
 	
 	public Variable getElement(int index) {
@@ -54,9 +45,24 @@ public class TupleVariable extends Variable {
 	public int size() {
 		return elements.size();
 	}
+	
+	@Override
+	public String toString() {
+		return stringValue();
+	}
 
 	@Override
 	public Variable assign(Variable x) {
+		if(x instanceof ArrayVariable) {
+			ArrayVariable array = (ArrayVariable)x;
+			if(getTypeName().equals(x.getTypeName())) {
+				elements = new ArrayList<Variable>(array.size());
+				for(int index = 0; index < array.size(); index++) {
+					elements.add(array.getElement(index).copy());
+				}
+				return this;
+			}
+		}
 		throw new UnsupportedOperatorException();
 	}
 
@@ -102,12 +108,36 @@ public class TupleVariable extends Variable {
 
 	@Override
 	public BooleanVariable equalTo(Variable x) {
-		throw new UnsupportedOperatorException();
+		if(!x.getTypeName().equals(getTypeName())) {
+			throw new UnsupportedOperatorException();
+		}
+		ArrayVariable array = (ArrayVariable)x;
+		if(array.size() != size()) {
+			return new BooleanVariable(false);
+		}
+		for(int index = 0; index < size(); index++) {
+			if(!array.getElement(index).equalTo(getElement(index)).getValue()) {
+				return new BooleanVariable(false);				
+			}
+		}
+		return new BooleanVariable(true);
 	}
 
 	@Override
 	public BooleanVariable notEqualTo(Variable x) {
-		throw new UnsupportedOperatorException();
+		if(!x.getTypeName().equals(getTypeName())) {
+			throw new UnsupportedOperatorException();
+		}
+		ArrayVariable array = (ArrayVariable)x;
+		if(array.size() != size()) {
+			return new BooleanVariable(true);
+		}
+		for(int index = 0; index < size(); index++) {
+			if(!array.getElement(index).equalTo(getElement(index)).getValue()) {
+				return new BooleanVariable(true);				
+			}
+		}
+		return new BooleanVariable(false);
 	}
 
 	@Override
@@ -152,16 +182,15 @@ public class TupleVariable extends Variable {
 
 	@Override
 	public Variable call(Variable left, Variable right) {
+		if(right == null) {
+			throw new InvalidCallParametersException(this, left, right, null);
+		}
 		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable copy() {
-		ArrayList<Variable> copy = new ArrayList<Variable>(elements.size());
-		for(Variable v : elements) {
-			copy.add(v.copy());
-		}
-		return new TupleVariable(copy);
+		throw new UnsupportedOperatorException();
 	}
-	
+
 }

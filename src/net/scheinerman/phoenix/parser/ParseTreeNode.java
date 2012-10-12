@@ -30,13 +30,19 @@ public abstract class ParseTreeNode {
 		NONARY			// *
 	}
 	
+	public enum Surround {
+		PARENTHESES,
+		BRACKETS,
+		NONE
+	}
+	
 	private SourceCode.Line source;
 	
 	private Type operationType;
 	private ParseTreeNode left = null;
 	private ParseTreeNode right = null;
 	
-	private boolean parenthesized = false;
+	private Surround surround = Surround.NONE;
 	
 	public ParseTreeNode(Type type, SourceCode.Line source) {
 		this.operationType = type;
@@ -76,12 +82,12 @@ public abstract class ParseTreeNode {
 		return true;
 	}
 	
-	public final boolean isParenthesized() {
-		return parenthesized;
+	public final Surround getSurround() {
+		return surround;
 	}
 	
-	public final void setParenthesized(boolean parenthesized) {
-		this.parenthesized = parenthesized;
+	public final void setSurround(Surround surround) {
+		this.surround = surround;
 	}
 	
 	public final SourceCode.Line getSourceLine() {

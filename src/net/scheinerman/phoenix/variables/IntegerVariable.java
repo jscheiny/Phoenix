@@ -242,5 +242,10 @@ public class IntegerVariable extends Variable {
 	public Variable call(Variable left, Variable right) {
 		throw new UnsupportedOperatorException();
 	}
+
+	@Override
+	public Variable copy() {
+		return new IntegerVariable(value);
+	}
 	
 }

@@ -20,11 +20,18 @@ package net.scheinerman.phoenix.interpreter;
 
 import java.util.*;
 
+import net.scheinerman.phoenix.interpreter.Interpreter.EndCondition;
+import net.scheinerman.phoenix.variables.*;
+
 public class IfExecutor {
 
 	private LinkedList<IfConditionInterpreter> conditions
 		= new LinkedList<IfConditionInterpreter>();
 	private ElseInterpreter elseInterpreter = null;
+	
+	private EndCondition endCondition;
+	private SourceCode.Line endConditionLine;
+	private Variable returnVariable;
 	
 	public IfExecutor() {
 		
@@ -38,16 +45,30 @@ public class IfExecutor {
 		this.elseInterpreter = elseInterpreter;
 	}
 	
-	public void execute() {
+	public SourceCode.Line getEndConditionLine() {
+		return endConditionLine;
+	}
+	
+	public Variable getReturnVariable() {
+		return returnVariable;
+	}
+	
+	public EndCondition execute() {
 		for(IfConditionInterpreter condition : conditions) {
 			if(condition.isPredicateTrue()) {
-				condition.interpret();
-				return;
+				endCondition = condition.interpret();
+				endConditionLine = condition.getEndConditionLine();
+				returnVariable = condition.getReturnVariable();
+				return endCondition;
 			}
 		}
 		if(elseInterpreter != null) {
-			elseInterpreter.interpret();
+			endCondition = elseInterpreter.interpret();
+			endConditionLine = elseInterpreter.getEndConditionLine();
+			returnVariable = elseInterpreter.getReturnVariable();
+			return endCondition;
 		}
+		return EndCondition.NORMAL;
 	}
 
 }

@@ -20,9 +20,8 @@ package net.scheinerman.phoenix.interpreter;
 
 public class ElseInterpreter extends Interpreter {
 
-	public ElseInterpreter(Interpreter parent, SourceCode source, int start,
-			int end, boolean loopChild) {
-		super(parent, source, start, end, loopChild);
+	public ElseInterpreter(Interpreter parent, SourceCode source, int start, int end) {
+		super(parent, source, start, end);
 	}
 
 }

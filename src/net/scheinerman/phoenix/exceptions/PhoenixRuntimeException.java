@@ -18,7 +18,12 @@
 
 package net.scheinerman.phoenix.exceptions;
 
+import java.util.*;
+
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
+
+import com.sun.tools.javac.util.*;
 
 public class PhoenixRuntimeException extends RuntimeException {
 
@@ -27,6 +32,8 @@ public class PhoenixRuntimeException extends RuntimeException {
 	private String errorType = "Error";
 	private String message;
 	private SourceCode.Line sourceLine;
+	
+	private static Queue<Pair<SourceCode.Line, String>> trace = new LinkedList<Pair<Line,String>>();
 	
 	public PhoenixRuntimeException(String message, SourceCode.Line sourceLine) {
 		this.message = message;
@@ -42,7 +49,12 @@ public class PhoenixRuntimeException extends RuntimeException {
 	}
 	
 	public void setSourceLine(SourceCode.Line sourceLine) {
-		this.sourceLine = sourceLine;
+		if(this.sourceLine == null)
+			this.sourceLine = sourceLine;
+	}
+	
+	public SourceCode.Line getSourceLine() {
+		return sourceLine;
 	}
 	
 	public void setErrorType(String errorType) {
@@ -51,6 +63,14 @@ public class PhoenixRuntimeException extends RuntimeException {
 	
 	public void printTrace() {
 		System.err.println(errorType + ": " + message);
-		System.err.println("    " + sourceLine);
+		System.err.println("        " + sourceLine);
+		while(!trace.isEmpty()) {
+			Pair<Line, String> traceElement = trace.remove();
+			System.err.println("... in " + traceElement.snd + " " + traceElement.fst.getLocationString());
+		}
+	}
+	
+	public void addFunctionTrace(Line line, FunctionInterpreter interpreter) {
+		trace.add(new Pair<SourceCode.Line, String>(line, interpreter.getName()));
 	}
 }

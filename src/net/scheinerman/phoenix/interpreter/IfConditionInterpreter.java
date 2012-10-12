@@ -32,9 +32,9 @@ public class IfConditionInterpreter extends Interpreter {
 	private int predicateEndToken;
 	
 	public IfConditionInterpreter(Interpreter parent, SourceCode source, int start,
-			int end, boolean loopChild, ArrayList<Token> predicateTokens, int predicateStartToken,
+			int end, ArrayList<Token> predicateTokens, int predicateStartToken,
 			int predicateEndToken) {
-		super(parent, source, start, end, loopChild);
+		super(parent, source, start, end);
 		this.predicateTokens = predicateTokens;
 		this.predicateStartToken = predicateStartToken;
 		this.predicateEndToken = predicateEndToken;

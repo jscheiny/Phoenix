@@ -58,6 +58,12 @@ public class VariableAllocationTable {
 
 	}
 	
+	public VariableAllocationTable getGlobal() {
+		VariableAllocationTable vat = new VariableAllocationTable();
+		vat.globalNamespace = globalNamespace;
+		return vat;
+	}
+	
 	public void pushStackFrame() {
 		stack.addFirst(new StackFrame());
 	}

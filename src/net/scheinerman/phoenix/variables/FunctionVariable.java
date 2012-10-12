@@ -1,53 +1,47 @@
-// TypeVariable.java
-// Copyright (C) 2012 by Jonah Scheinerman
-//
-// This file is part of the Phoenix programming language.
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 package net.scheinerman.phoenix.variables;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
 
-public class TypeVariable extends Variable {
+public class FunctionVariable extends Variable {
 
-	private static final String TYPE_NAME = Interpreter.Strings.TYPE;
-
-	private String value;
+	private static final String TYPE_NAME = Interpreter.Strings.FUNCTION;
 	
-	public TypeVariable() {
-		this("void");
-	}
-
-	public TypeVariable(Variable value) {
-		this(value.getTypeName());
-	}
+	private FunctionInterpreter interpreter;
 	
-	public TypeVariable(String value) {
+	public FunctionVariable(FunctionInterpreter interpreter) {
 		super(TYPE_NAME);
-		this.value = value;
+		this.interpreter = interpreter;
 	}
-
+	
+	public FunctionInterpreter getInterpreter() {
+		return interpreter;
+	}
+	
+	@Override
+	public Variable call(Variable left, Variable right) {
+		interpreter.call(this, left, right);
+		return interpreter.getReturnVariable();
+	}
+	
+	public String getName() {
+		return interpreter.getName();
+	}
+	
 	@Override
 	public String stringValue() {
-		return value;
+		return interpreter.getDefinition();
 	}
-	
+
 	@Override
 	public String toString() {
-		return value;
+		return stringValue();
+	}
+
+	@Override
+	public Variable copy() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -79,11 +73,6 @@ public class TypeVariable extends Variable {
 	public Variable mod(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
-	
-	@Override
-	public Variable negate() {
-		throw new UnsupportedOperationException();
-	}
 
 	@Override
 	public Variable exponentiate(Variable x) {
@@ -96,18 +85,17 @@ public class TypeVariable extends Variable {
 	}
 
 	@Override
+	public Variable negate() {
+		throw new UnsupportedOperatorException();
+	}
+
+	@Override
 	public BooleanVariable equalTo(Variable x) {
-		if(x instanceof TypeVariable) {
-			return new BooleanVariable(value.equals(x.stringValue()));
-		}
 		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public BooleanVariable notEqualTo(Variable x) {
-		if(x instanceof TypeVariable) {
-			return new BooleanVariable(!value.equals(x.stringValue()));
-		}
 		throw new UnsupportedOperatorException();
 	}
 
@@ -148,24 +136,7 @@ public class TypeVariable extends Variable {
 
 	@Override
 	public Variable convertTo(TypeVariable type) {
-		throw new UnsupportedOperatorException();
-	}
-
-	@Override
-	public Variable call(Variable left, Variable right) {
-		if(left != null) {
-			throw new InvalidCallParametersException(this, left, right, null);
-		}
-		if(value.equals(Interpreter.Strings.TYPE)) {
-			return new TypeVariable(right.getTypeName());
-		} else {
-			return right.convertTo(this);
-		}
-	}
-
-	@Override
-	public Variable copy() {
-		return new TypeVariable(value);
+		throw new InvalidConversionException(this, type.stringValue());
 	}
 
 }

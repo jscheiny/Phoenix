@@ -21,13 +21,16 @@ package net.scheinerman.phoenix.interpreter;
 import java.io.*;
 import java.util.*;
 
+import net.scheinerman.phoenix.parser.*;
+import net.scheinerman.phoenix.parser.Tokenizer.Token;
+
 public class SourceCode {
 
 	public static class Line {
 		public static String extractIndent(String line) {
 			int index;
 			for(index = 0; index < line.length(); index++) {
-				if(Character.isWhitespace(line.charAt(index))) {
+				if(!Character.isWhitespace(line.charAt(index))) {
 					break;
 				}
 			}
@@ -62,7 +65,8 @@ public class SourceCode {
 		private String indent;
 		private String content;
 		private boolean empty;
-
+		private ArrayList<Token> tokenization = null;
+		
 		public Line(SourceCode source, String line, int lineNumber) {
 			this.source = source;
 			this.line = line;
@@ -70,6 +74,14 @@ public class SourceCode {
 			indent = extractIndent(line);
 			content = stripComments(line).trim();
 			empty = content.isEmpty();
+		}
+		
+		public ArrayList<Token> tokenize() {
+			if(tokenization != null) {
+				return tokenization;
+			}
+			tokenization = Tokenizer.tokenize(getLineContent(), this);
+			return tokenization;
 		}
 		
 		public String getUnchangedLine() {
@@ -105,8 +117,11 @@ public class SourceCode {
 		}
 		
 		public String toString() {
-			return getLineContent() + " (" + source.getFile().getPath() + ":" + (lineNumber + 1) +
-				")";
+			return getLineContent() + " " + getLocationString();
+		}
+		
+		public String getLocationString() {
+			return "(" + source.getFile().getPath() + ":" + (lineNumber + 1) + ")";
 		}
 	}
 	

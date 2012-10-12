@@ -12,7 +12,13 @@ public class InvalidCallParametersException extends PhoenixRuntimeException {
 		setSourceLine(sourceLine);
 		setErrorType("Parameters error");
 		
-		String message = "Variable of type " + callee.getTypeName() + " cannot be called with ";
+		String message;
+		if(callee instanceof FunctionVariable) {
+			message = "Function " + ((FunctionVariable)callee).getName();
+		} else {
+			message = "Variable of type " + callee.getTypeName();
+		}
+		message += " cannot be called with ";
 		if(left != null) {
 			if(left instanceof TupleVariable) {
 				message += "left parameters of types " + ((TupleVariable)left).typeString();
@@ -30,6 +36,9 @@ public class InvalidCallParametersException extends PhoenixRuntimeException {
 				message += "right parameters of types (" + right.getTypeName() + ")";
 			}
 			message += ".";
+		}
+		if(left == null && right == null) {
+			message += "no parameters.";
 		}
 		setMessage(message);
 	}

@@ -23,7 +23,8 @@ import java.util.regex.*;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
-import net.scheinerman.phoenix.interpreter.Interpreter.*;
+import net.scheinerman.phoenix.interpreter.Interpreter.Strings;
+import net.scheinerman.phoenix.parser.ParseTreeNode.Surround;
 import net.scheinerman.phoenix.parser.ParseTreeNode.Type;
 import net.scheinerman.phoenix.parser.Tokenizer.Token;
 import net.scheinerman.phoenix.variables.*;
@@ -76,13 +77,13 @@ public class Parser {
 		if(!parensValid(tokens, startIndex, endIndex)) {
 			throw new SyntaxException("Mismatching parentheses.", source);
 		}
-		return parse(interpreter, source, tokens, startIndex, endIndex, false);
+		return parse(interpreter, source, tokens, startIndex, endIndex, Surround.NONE);
 	}
 	
 	private static ParseTreeNode parse(Interpreter interpreter, SourceCode.Line source,
-			ArrayList<Token> tokens, int start, int end, boolean parenthesized) {
+			ArrayList<Token> tokens, int start, int end, Surround surround) {
 		if(end < start) {
-			if(parenthesized) {
+			if(surround != Surround.NONE) {
 				throw new SyntaxException("Cannot parse empty parenthetical.", source);
 			} else {
 				throw new SyntaxException("Cannot parse empty expression.", source);
@@ -100,7 +101,19 @@ public class Parser {
 					if(tokens.get(close).getToken().equals(")")) open--;
 					if(open == 0) break;
 				}
-				nodes.add(parse(interpreter, source, tokens, index + 1, close - 1, true));
+				nodes.add(parse(interpreter, source, tokens, index + 1, close - 1,
+								Surround.PARENTHESES));
+				index = close;
+			} else if(token.getToken().equals("[")) {
+				int open = 1;
+				int close;
+				for(close = index + 1; close <= end; close++) {
+					if(tokens.get(close).getToken().equals("[")) open++;
+					if(tokens.get(close).getToken().equals("]")) open--;
+					if(open == 0) break;
+				}
+				nodes.add(parse(interpreter, source, tokens, index + 1, close - 1,
+								Surround.BRACKETS));
 				index = close;
 			} else if(token.isDelimiter()) {
 				if((nodes.size() == 0 || nodes.get(nodes.size() - 1) instanceof OperatorNode) && 
@@ -113,10 +126,32 @@ public class Parser {
 				nodes.add(parseToken(token, interpreter, source));
 			}
 		}
+		setUpReferences(nodes, source);
 		setUpCalls(nodes, source);
-		ParseTreeNode reduced = reduce(nodes, source);
-		reduced.setParenthesized(parenthesized);
+		ParseTreeNode reduced = reduce(nodes, source, surround);
 		return reduced;
+	}
+	
+	private static void setUpReferences(ArrayList<ParseTreeNode> nodes, SourceCode.Line source) {
+		for(int index = 0; index < nodes.size(); index++) {
+			ParseTreeNode curr = nodes.get(index);
+			if(curr instanceof OperatorNode.FunctionReference) {
+				if(index == nodes.size() - 1) {
+					throw new SyntaxException("@ operator requires right hand operand.", source);
+				}
+				ParseTreeNode next = nodes.get(index + 1);
+				if(!(next instanceof DataNode)) {
+					throw new SyntaxException("@ operator must take a function type variable.",
+						source);
+				}
+				if(!(((DataNode)next).getValue() instanceof FunctionVariable)) {
+					throw new SyntaxException("@ operator must take a function type variable.",
+						source);
+				}
+				curr.setRight(next);
+				nodes.remove(index + 1);
+			}
+		}
 	}
 	
 	private static void setUpCalls(ArrayList<ParseTreeNode> nodes, SourceCode.Line source) {
@@ -131,8 +166,10 @@ public class Parser {
 					right = nodes.get(index + 1);
 				}
 
-				boolean leftOperandValid = (left != null && left.isParenthesized());
-				boolean rightOperandValid = (right != null && right.isParenthesized());
+				boolean leftOperandValid = (left != null &&
+											left.getSurround() == Surround.PARENTHESES);
+				boolean rightOperandValid = (right != null &&
+											 right.getSurround() == Surround.PARENTHESES);
 				
 				if(leftOperandValid || rightOperandValid) {
 					ParseTreeNode.Type type;
@@ -155,13 +192,20 @@ public class Parser {
 					if(rightOperandValid) {
 						nodes.remove(index + 1);
 						call.setRight(right);
+						index--;
+					}
+				} else if(callee instanceof DataNode) {
+					if(((DataNode)callee).getValue() instanceof FunctionVariable) {
+						CallNode call = new CallNode(callee, Type.NONARY, source);
+						nodes.set(index, call);
 					}
 				}
 			}
 		}
 	}
 	
-	private static ParseTreeNode reduce(ArrayList<ParseTreeNode> nodes, SourceCode.Line source) {
+	private static ParseTreeNode reduce(ArrayList<ParseTreeNode> nodes, SourceCode.Line source,
+			Surround surround) {
 		while(nodes.size() > 1) {
 			int maxPrecedence = -2;
 			ParseTreeNode maxOperator = null;
@@ -213,15 +257,21 @@ public class Parser {
 			}
 		}
 		
-		if(nodes.size() != 1) {
+		if(nodes.size() != 1 || surround == Surround.BRACKETS) {
 			try {
 				ListNode node = new ListNode(source, nodes);
+				node.setSurround(surround);
 				return node;
 			} catch(PhoenixRuntimeException e) {
 				throw new SyntaxException("Invalid expression", source);
 			}
 		}
 		
+		if(surround != Surround.NONE) {
+			SurroundNode encapsulate = new SurroundNode(nodes.get(0), source);
+			encapsulate.setSurround(surround);
+			return encapsulate;
+		}
 		return nodes.get(0);
 	}
 	
@@ -280,17 +330,22 @@ public class Parser {
 	}
 	
 	public static boolean parensValid(ArrayList<Token> tokens, int startIndex, int endIndex) {
-		int open = 0;
+		Stack<String> parens = new Stack<String>();
 		for(int index = startIndex; index <= endIndex; index++) {
-			Token token = tokens.get(index);
-			if(token.getToken().equals("(")) {
-				open++;
+			String token = tokens.get(index).getToken();
+			if(token.equals("(")) {
+				parens.push(")");
 			}
-			if(token.getToken().equals(")")) {
-				open--;
+			if(token.equals("[")) {
+				parens.push("]");
 			}
-			if(open < 0) return false;
+			if(token.equals(")") || token.equals("]")) {
+				if(parens.isEmpty())
+					return false;
+				if(!parens.pop().equals(token))
+					return false;
+			}
 		}
-		return open == 0;
+		return parens.isEmpty();
 	}
 }

@@ -29,6 +29,9 @@ import net.scheinerman.phoenix.variables.*;
 public class LoopInterpreter extends Interpreter {
 
 	private SourceCode.Line predicateLine;
+	private ArrayList<Token> predicateTokens;
+	private int predicateStartToken;
+	private int predicateEndToken;
 	private ParseTreeNode predicateParseTree;
 	private boolean predicateCheckedAtBeginning;
 	private boolean predicateLoopEndValue;
@@ -48,7 +51,7 @@ public class LoopInterpreter extends Interpreter {
 			SourceCode.Line predicateLine, String predicate, boolean predicateCheckedAtBeginning,
 			boolean predicateLoopEndValue, OtherwiseInterpreter otherwise) {
 
-		super(parent, source, start, end, true);
+		super(parent, source, start, end);
 		this.predicateLine = predicateLine;
 		this.predicateCheckedAtBeginning = predicateCheckedAtBeginning;
 		this.predicateLoopEndValue = predicateLoopEndValue;
@@ -69,27 +72,39 @@ public class LoopInterpreter extends Interpreter {
 			SourceCode.Line predicateLine, ArrayList<Token> predicateTokens,
 			int predicateStartToken, int predicateEndToken, boolean predicateCheckedAtBeginning,
 			boolean predicateLoopEndValue, OtherwiseInterpreter otherwise) {
-		super(parent, source, start, end, true);
+		super(parent, source, start, end);
 		
 		this.predicateLine = predicateLine;
+		this.predicateTokens = predicateTokens;
+		this.predicateStartToken = predicateStartToken;
+		this.predicateEndToken = predicateEndToken;
 		this.predicateCheckedAtBeginning = predicateCheckedAtBeginning;
 		this.predicateLoopEndValue = predicateLoopEndValue;
 		this.otherwise = otherwise;
-		
-		predicateParseTree = Parser.getParseTree(this, predicateLine, predicateTokens,
-			predicateStartToken, predicateEndToken);
 	}
 	
-	public void interpret() {
+	public EndCondition interpret() {
 		if(isPredicateCheckedAtBeginning() && isLoopDone()) {
 			if(otherwise != null) {
-				otherwise.interpret();
+				return otherwise.interpret();
 			}
-			return;
+			return EndCondition.NORMAL;
 		}
 		do {
-			super.interpret();
+			EndCondition endCondition = super.interpret();
+			if(endCondition == EndCondition.BREAK) {
+				return EndCondition.NORMAL;
+			}
+			if(endCondition == EndCondition.RETURN) {
+				return endCondition;
+			}
+			performAtLoopEnd();
 		} while(!isLoopDone());
+		return EndCondition.NORMAL;
+	}
+	
+	public final SourceCode.Line getPredicateLine() {
+		return predicateLine;
 	}
 	
 	public final boolean isPredicateCheckedAtBeginning() {
@@ -97,12 +112,18 @@ public class LoopInterpreter extends Interpreter {
 	}
 	
 	public final boolean checkPredicate() {
+		if(predicateParseTree == null) {
+			predicateParseTree = Parser.getParseTree(this, predicateLine, predicateTokens,
+					predicateStartToken, predicateEndToken);
+		}
 		Variable predicateEvaluation = predicateParseTree.operate().getValue();
 		if(predicateEvaluation instanceof BooleanVariable) {
 			return ((BooleanVariable)predicateEvaluation).getValue();
 		}
 		throw new SyntaxException("Loop predicate must evaluate to type bool.", predicateLine);
 	}
+	
+	protected void performAtLoopEnd() {}
 	
 	public final boolean isLoopDone() {
 		if(checkPredicate() == predicateLoopEndValue) {

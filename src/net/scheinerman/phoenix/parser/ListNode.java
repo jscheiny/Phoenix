@@ -31,11 +31,22 @@ public class ListNode extends ParseTreeNode {
 
 	@Override
 	protected DataNode operate(ParseTreeNode left, ParseTreeNode right) {
-		ArrayList<Variable> elements = new ArrayList<Variable>(nodes.size());
-		for(ParseTreeNode node : nodes) {
-			elements.add(node.operate().getValue());
+		try {
+			ArrayList<Variable> elements = new ArrayList<Variable>(nodes.size());
+			for(ParseTreeNode node : nodes) {
+				elements.add(node.operate().getValue());
+			}
+			
+			Variable ret;
+			if(getSurround() == Surround.BRACKETS)
+				ret = new ArrayVariable(elements);
+			else
+				ret = new TupleVariable(elements);
+			
+			return new DataNode(ret, getSourceLine());
+		} catch(PhoenixRuntimeException e) {
+			throw e;
 		}
-		return new DataNode(new TupleVariable(elements), getSourceLine());
 	}
 
 }

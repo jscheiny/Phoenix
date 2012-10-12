@@ -103,6 +103,8 @@ public class Tokenizer {
 	static {
 		DELIMITERS.add(new Delimiter("("));
 		DELIMITERS.add(new Delimiter(")"));
+		DELIMITERS.add(new Delimiter("["));
+		DELIMITERS.add(new Delimiter("]"));
 		DELIMITERS.add(new Delimiter(":"));
 		DELIMITERS.add(new Delimiter(";"));
 		for(String operator : Interpreter.Strings.OPERATORS) {

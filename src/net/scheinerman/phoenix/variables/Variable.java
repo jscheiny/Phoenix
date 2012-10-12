@@ -32,6 +32,10 @@ public abstract class Variable {
 		this.typeName = typeName;
 	}
 	
+	protected final void setTypeName(String typeName) {
+		this.typeName = typeName;
+	}
+	
 	public String getTypeName() {
 		return typeName;
 	}
@@ -46,6 +50,7 @@ public abstract class Variable {
 
 	public abstract String stringValue();
 	
+	public abstract Variable copy();
 	public abstract Variable assign(Variable x);
 
 	public abstract Variable add(Variable x);

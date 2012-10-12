@@ -25,7 +25,9 @@ public class UnsupportedOperatorException extends PhoenixRuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
+	
 	public UnsupportedOperatorException() {
+		setMessage(null);
 	}
 	
 	public UnsupportedOperatorException(String operator, Variable leftOperand,

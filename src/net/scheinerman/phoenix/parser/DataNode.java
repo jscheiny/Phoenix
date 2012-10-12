@@ -29,7 +29,7 @@ public class DataNode extends ParseTreeNode {
 		super(ParseTreeNode.Type.NONARY, source);
 		this.value = value;
 	}
-
+	
 	@Override
 	public int precedence() {
 		return -1;

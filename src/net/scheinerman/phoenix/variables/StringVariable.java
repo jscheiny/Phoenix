@@ -61,7 +61,7 @@ public class StringVariable extends Variable {
 	public static String scrubLiteral(String literal, SourceCode.Line source) {
 		String scrubbed = "";
 		for(int index = 1; index < literal.length() - 1; index++) {
-			if(literal.charAt(index) == '\"') {
+			if(literal.charAt(index) == '\\') {
 				if(index == literal.length() - 2)
 					throw new SyntaxException("Illegal character \\ in string literal.", source);
 				char next = literal.charAt(index + 1);
@@ -70,6 +70,7 @@ public class StringVariable extends Variable {
 					throw new SyntaxException("Illegal escaped character " + next + 
 						" in string literal.", source);
 				scrubbed += escaped;
+				index++;
 			} else {
 				scrubbed += literal.charAt(index);
 			}
@@ -222,5 +223,10 @@ public class StringVariable extends Variable {
 	@Override
 	public Variable call(Variable left, Variable right) {
 		throw new UnsupportedOperatorException();
+	}
+
+	@Override
+	public Variable copy() {
+		return new StringVariable(value);
 	}
 }

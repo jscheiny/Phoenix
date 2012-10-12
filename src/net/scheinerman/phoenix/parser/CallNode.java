@@ -17,6 +17,11 @@ public class CallNode extends ParseTreeNode {
 	public int precedence() {
 		return Integer.MAX_VALUE;
 	}
+	
+	@Override
+	public String toString() {
+		return (left() != null ? left().toString() : "") + callee.toString() + (right() != null ? right().toString() : "");
+	}
 
 	@Override
 	protected DataNode operate(ParseTreeNode left, ParseTreeNode right) {
@@ -29,10 +34,15 @@ public class CallNode extends ParseTreeNode {
 			
 		} catch(UnsupportedOperatorException e) {
 			e.setSourceLine(getSourceLine());
-			e.setMessage(calleeValue.getTypeName() + " type variables are not callable.");
+			if(!(calleeValue instanceof FunctionVariable))
+				e.setMessage(calleeValue.getTypeName() + " type variables are not callable.");
 			throw e;
 		} catch(PhoenixRuntimeException e) {
 			e.setSourceLine(getSourceLine());
+			if(calleeValue instanceof FunctionVariable) {
+				e.addFunctionTrace(getSourceLine(),
+					((FunctionVariable)calleeValue).getInterpreter());
+			}
 			throw e;
 		}
 	}
