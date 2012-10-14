@@ -54,8 +54,13 @@ public class DoubleVariable extends Variable {
 	public Variable assign(Variable x) {
 		if(x instanceof IntegerVariable) {
 			value = ((IntegerVariable)x).getValue();
+			return this;
 		} else if(x instanceof DoubleVariable) {
 			value = ((DoubleVariable)x).getValue();
+			return this;
+		} else if(x instanceof LongVariable) {
+			value = ((LongVariable)x).getValue();
+			return this;
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -66,6 +71,8 @@ public class DoubleVariable extends Variable {
 			return new DoubleVariable(value + ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(value + ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new DoubleVariable(value + ((LongVariable)x).getValue());
 		} else if(x instanceof StringVariable) {
 			return new StringVariable(value + x.stringValue());
 		}
@@ -78,6 +85,8 @@ public class DoubleVariable extends Variable {
 			return new DoubleVariable(value - ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(value - ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new DoubleVariable(value - ((LongVariable)x).getValue());
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -88,6 +97,8 @@ public class DoubleVariable extends Variable {
 			return new DoubleVariable(value * ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(value * ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new DoubleVariable(value * ((LongVariable)x).getValue());
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -98,6 +109,8 @@ public class DoubleVariable extends Variable {
 			return new DoubleVariable(value / ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(value / ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new DoubleVariable(value / ((LongVariable)x).getValue());
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -108,6 +121,8 @@ public class DoubleVariable extends Variable {
 			return new DoubleVariable(value % ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(value % ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new DoubleVariable(value % ((LongVariable)x).getValue());
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -118,13 +133,9 @@ public class DoubleVariable extends Variable {
 			return new DoubleVariable(Math.pow(value, ((IntegerVariable)x).getValue()));
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(Math.pow(value, ((DoubleVariable)x).getValue()));
+		} else if(x instanceof LongVariable) {
+			return new DoubleVariable(Math.pow(value, ((LongVariable)x).getValue()));
 		}
-		throw new UnsupportedOperatorException();
-	}
-
-	@Override
-	public Variable round(Variable x) {
-		// TODO Auto-generated method stub
 		throw new UnsupportedOperatorException();
 	}
 
@@ -139,6 +150,8 @@ public class DoubleVariable extends Variable {
 			return new BooleanVariable(value == ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value == ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new BooleanVariable(value == ((LongVariable)x).getValue());
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -149,6 +162,8 @@ public class DoubleVariable extends Variable {
 			return new BooleanVariable(value != ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value != ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new BooleanVariable(value != ((LongVariable)x).getValue());
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -159,6 +174,8 @@ public class DoubleVariable extends Variable {
 			return new BooleanVariable(value < ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value < ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new BooleanVariable(value < ((LongVariable)x).getValue());
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -169,6 +186,8 @@ public class DoubleVariable extends Variable {
 			return new BooleanVariable(value <= ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value <= ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new BooleanVariable(value <= ((LongVariable)x).getValue());
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -179,6 +198,8 @@ public class DoubleVariable extends Variable {
 			return new BooleanVariable(value > ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value > ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new BooleanVariable(value > ((LongVariable)x).getValue());
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -189,6 +210,8 @@ public class DoubleVariable extends Variable {
 			return new BooleanVariable(value >= ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value >= ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new BooleanVariable(value >= ((LongVariable)x).getValue());
 		}
 		throw new UnsupportedOperatorException();
 	}
@@ -213,6 +236,8 @@ public class DoubleVariable extends Variable {
 		String typeName = type.stringValue();
 		if(typeName.equals(Interpreter.Strings.INTEGER)) {
 			return new IntegerVariable((int)value);
+		} else if(typeName.equals(Interpreter.Strings.LONG)) {
+			return new LongVariable((long)value);
 		} else if(typeName.equals(Interpreter.Strings.STRING)) {
 			return new StringVariable("" + value);
 		} else if(typeName.equals(Interpreter.Strings.BOOLEAN)) {

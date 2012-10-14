@@ -40,6 +40,9 @@ import com.sun.tools.javac.util.*;
  */
 public class Interpreter {
 
+	/** Contains all keywords (includes all named types). */
+	public static final HashSet<String> KEYWORDS = new HashSet<String>();	
+	
 	/**
 	 * Contains constant strings that are useful for interpretation of Phoenix code. This includes
 	 * keywords, operators, type names, and more.
@@ -60,135 +63,96 @@ public class Interpreter {
 		
 		/** The comment start character. */
 		public static final String COMMENT_START = "//";
-		
-		// Operators
-		public static final String ASSIGN = "=";
-		public static final String ASSIGN_ADD = "+=";
-		public static final String ASSIGN_SUBTRACT = "-=";
-		public static final String ASSIGN_MULTIPLY = "*=";
-		public static final String ASSIGN_DIVIDE = "/=";
-		public static final String ASSIGN_MOD = "%=";
-		public static final String ASSIGN_ROUND = "#=";
-		public static final String ASSIGN_EXPONENTIATE = "^=";
-		public static final String ADD = "+";
-		public static final String SUBTRACT = "-";
-		public static final String MULTIPLY = "*";
-		public static final String DIVIDE = "/";
-		public static final String MOD = "%";
-		public static final String ROUND = "#";
-		public static final String EXPONENTIATE = "^";
-		public static final String EQUAL = "==";
-		public static final String NOT_EQUAL = "!=";
-		public static final String LESS_THAN = "<";
-		public static final String LESS_THAN_EQUAL = "<=";
-		public static final String GREATER_THAN = ">";
-		public static final String GREATER_THAN_EQUAL = ">=";
-		public static final String LOGICAL_AND = "&";
-		public static final String LOGICAL_OR = "|";
-		public static final String LOGICAL_NOT = "!";
-		public static final String ARG_SEPARATOR = ",";
-		public static final String FUNCTION_REF = "@";
-		
+
 		// Keywords
-		public static final String IF = "if";
-		public static final String ELSE = "else";
-		public static final String SWITCH = "switch";
-		public static final String CASE = "case";
-		public static final String DEFAULT = "default";
-		public static final String DO = "do";
-		public static final String WHILE = "while";
-		public static final String UNTIL = "until";
-		public static final String FOR = "for";
-		public static final String OTHERWISE = "otherwise";
-		public static final String BREAK = "break";
-		public static final String CONTINUE = "continue";
 		public static final String TRUE = "true";
 		public static final String FALSE = "false";
 		public static final String INTEGER = "int";
+		public static final String LONG = "long";
 		public static final String DOUBLE = "double";
 		public static final String STRING = "str";
 		public static final String BOOLEAN = "bool";
 		public static final String TUPLE = "tuple";
 		public static final String TYPE = "type";
-		public static final String FUNCTION = "function";
 		public static final String VOID = "void";
-		public static final String RETURN = "return";
-		public static final String PRINT = "print";
 		
-		/** Contains all keywords (includes all named types). */
-		public static final HashSet<String> KEYWORDS = new HashSet<String>();
-
 		/** Contains all named types. */
 		public static final HashSet<String> TYPES = new HashSet<String>();
 
-		/** Contains all operator symbols. */
-		public static final HashSet<String> OPERATORS = new HashSet<String>();
-
-
 		// Initialize keywords, types, and operators.
 		static {
-			KEYWORDS.add(IF);
-			KEYWORDS.add(ELSE);
-			KEYWORDS.add(SWITCH);
-			KEYWORDS.add(CASE);
-			KEYWORDS.add(DEFAULT);
-			KEYWORDS.add(DO);
-			KEYWORDS.add(WHILE);
-			KEYWORDS.add(UNTIL);
-			KEYWORDS.add(FOR);
-			KEYWORDS.add(OTHERWISE);
-			KEYWORDS.add(BREAK);
-			KEYWORDS.add(CONTINUE);
 			KEYWORDS.add(INTEGER);
 			KEYWORDS.add(DOUBLE);
 			KEYWORDS.add(STRING);
 			KEYWORDS.add(BOOLEAN);
 			KEYWORDS.add(TYPE);
-			KEYWORDS.add(TUPLE);
+			KEYWORDS.add(LONG);
 			KEYWORDS.add(TRUE);
 			KEYWORDS.add(FALSE);
-			KEYWORDS.add(FUNCTION);
 			KEYWORDS.add(VOID);
-			KEYWORDS.add(RETURN);
-			KEYWORDS.add(PRINT);
 
 			TYPES.add(INTEGER);
 			TYPES.add(DOUBLE);
 			TYPES.add(STRING);
 			TYPES.add(BOOLEAN);
+			TYPES.add(LONG);
 			TYPES.add(TYPE);
-			TYPES.add(TUPLE);
-			TYPES.add(FUNCTION);
-
-			OPERATORS.add(ASSIGN);
-			OPERATORS.add(ASSIGN_ADD);
-			OPERATORS.add(ASSIGN_SUBTRACT);
-			OPERATORS.add(ASSIGN_MULTIPLY);
-			OPERATORS.add(ASSIGN_DIVIDE);
-			OPERATORS.add(ASSIGN_MOD);
-			OPERATORS.add(ASSIGN_ROUND);
-			OPERATORS.add(ASSIGN_EXPONENTIATE);
-			OPERATORS.add(ADD);
-			OPERATORS.add(SUBTRACT);
-			OPERATORS.add(MULTIPLY);
-			OPERATORS.add(DIVIDE);
-			OPERATORS.add(MOD);
-			OPERATORS.add(ROUND);
-			OPERATORS.add(EXPONENTIATE);
-			OPERATORS.add(EQUAL);
-			OPERATORS.add(NOT_EQUAL);
-			OPERATORS.add(LESS_THAN);
-			OPERATORS.add(LESS_THAN_EQUAL);
-			OPERATORS.add(GREATER_THAN);
-			OPERATORS.add(GREATER_THAN_EQUAL);
-			OPERATORS.add(LOGICAL_AND);
-			OPERATORS.add(LOGICAL_OR);
-			OPERATORS.add(LOGICAL_NOT);
-			OPERATORS.add(ARG_SEPARATOR);
-			OPERATORS.add(FUNCTION_REF);
+			TYPES.add(Statement.FUNCTION.getKeyword());
 		}
-
 	}
+
+	public enum StatementType {
+		SUBINTERPRETATION,
+		OTHER,
+		EMPTY;
+	}
+	
+	public static enum Statement {
+		EMPTY(null, StatementType.EMPTY),
+		IF("if", StatementType.OTHER),
+		ELSE("else", StatementType.EMPTY),
+		SWITCH("switch", StatementType.EMPTY),
+		CASE("case", StatementType.EMPTY),
+		DEFAULT("default", StatementType.EMPTY),
+		DO("do", StatementType.EMPTY),
+		DO_WHILE(null, StatementType.SUBINTERPRETATION),
+		DO_UNTIL(null, StatementType.SUBINTERPRETATION),
+		WHILE("while", StatementType.SUBINTERPRETATION),
+		UNTIL("until", StatementType.SUBINTERPRETATION),
+		FOR("for", StatementType.SUBINTERPRETATION),
+		OTHERWISE("otherwise", StatementType.EMPTY),
+		BREAK("break", StatementType.OTHER),
+		CONTINUE("continue", StatementType.OTHER),
+		RETURN("return", StatementType.OTHER),
+		FUNCTION("function", StatementType.OTHER),
+		INITIALIZATION(null, StatementType.OTHER),
+		PRINT("print", StatementType.OTHER),
+		PARSE(null, StatementType.OTHER),
+		UNDEFINED(null, StatementType.EMPTY);
+
+		private String keyword;
+		private StatementType type;
+		
+		private Statement(String keyword, StatementType type) {
+			this.keyword = keyword;
+			this.type = type;
+			if(keyword != null)
+				Interpreter.KEYWORDS.add(keyword);
+		}
+		
+		public String getKeyword() {
+			return keyword;
+		}
+		
+		public StatementType getType() {
+			return type;
+		}
+		
+		public String toString() {
+			return keyword;
+		}
+	}
+
 	
 	public enum EndCondition {
 		NORMAL,
@@ -321,79 +285,37 @@ public class Interpreter {
 		return source;
 	}
 	
+	public final Interpreter getParent() {
+		return parent;
+	}
+	
 	/**
 	 * Interprets and executes the code that this interpreter has been delegated.
 	 */
 	public EndCondition interpret() {
+		returnVariable = null;
 		vat.pushStackFrame();
 
 		try {			
 			for(int index = start; index <= end; index++) {
 				SourceCode.Line line = source.line(index);
-				String content = line.getLineContent();
-				ArrayList<Token> tokenization = line.tokenize();
+				Statement statement = line.getStatementType();
+
 				// If the current line is indented more than the previous line, and we are not at
 				// the start of the interpretation, then this is an indentation error.
 				if(index != start && line.indentGreaterThan(source.line(index - 1).getIndent())) {
 					throw new IndentException("Unexpected indented block", line);
+				}	
+	
+				if(statement == Statement.UNDEFINED) {
+					try {
+						setupUndefinedStatement(line, index);
+					} catch(PhoenixRuntimeException exception) {
+						line.setSetupException(exception);
+					}
 				}
-	
-				if(isIf(tokenization)) {
-					index = handleIf(tokenization, line, index);
-
-				} else if(isDo(tokenization)) {
-					index = handleDo(tokenization, line, index);
 				
-				} else if(isFor(tokenization)) {
-					index = handleFor(tokenization, line, index);
-				
-				} else if(isWhile(tokenization)) {
-					index = handleWhile(tokenization, line, index);
-				
-				} else if(isUntil(tokenization)) {
-					index = handleUntil(tokenization, line, index);
-				
-				} else if(content.equals(Strings.BREAK)) {
-					index = handleBreak(line, index);
-	
-				} else if(content.equals(Strings.CONTINUE)) {
-					index = handleContinue(line, index);
-					
-				} else if(isReturn(tokenization)) {
-					index = handleReturn(tokenization, line, index);
-	
-				} else if(isFunctionDeclaration(tokenization)) {
-					index = handleFunctionDeclaration(tokenization, line, index);
-					
-				} else if(isInitialization(tokenization)) {
-					handleInitialization(tokenization, line);
-					
-				} else if(isPrint(tokenization)) {
-					handlePrint(tokenization, line);
-					
-				} else if(isElse(tokenization)) {
-					throw new SyntaxException("Cannot have " + Strings.ELSE +
-						" block outside of " + Strings.IF + " clause.", line);
-					
-				} else if(isElseIf(tokenization)) {
-					throw new SyntaxException("Cannot have " + Strings.ELSE + " " + Strings.IF + 
-						" block outside of " + Strings.IF + " clause.", line);
-				
-				} else if(isOtherwise(tokenization)) {
-					throw new SyntaxException("Cannot have " + Strings.OTHERWISE +
-						" block outside of loop clause.", line);
-				
-				} else if(isCase(tokenization)) {
-					throw new SyntaxException("Cannot have " + Strings.CASE +
-						" statement outside of " + Strings.SWITCH + " block.", line);
-			
-				} else if(isDefault(tokenization)) {
-					throw new SyntaxException("Cannot have " + Strings.DEFAULT +
-						" statement outside of " + Strings.SWITCH + " block.", line);
-					
-				} else if(!content.isEmpty()) {
-					Parser.parse(this, line, tokenization);
-				}
+				index = handleDefinedStatement(line, index);
 				
 			}
 			
@@ -417,13 +339,106 @@ public class Interpreter {
 		return endCondition;
 	}
 	
+	private void setupUndefinedStatement(SourceCode.Line line, int index) {
+		ArrayList<Token> tokenization = line.tokenize();
+		String content = line.getLineContent();
+
+		if(content.isEmpty()) {
+			line.setStatementType(Statement.EMPTY);
+			
+		} else if(isIf(tokenization)) {
+			setupIf(tokenization, line, index);
+
+		} else if(isDo(tokenization)) {
+			setupDo(tokenization, line, index);
+		
+		} else if(isFor(tokenization)) {
+			setupFor(tokenization, line, index);
+		
+		} else if(isWhile(tokenization)) {
+			setupWhile(tokenization, line, index);
+		
+		} else if(isUntil(tokenization)) {
+			setupUntil(tokenization, line, index);
+		
+		} else if(content.equals(Statement.BREAK.getKeyword())) {
+			setupBreak(line, index);
+
+		} else if(content.equals(Statement.CONTINUE.getKeyword())) {
+			setupContinue(line, index);
+			
+		} else if(isReturn(tokenization)) {
+			setupReturn(tokenization, line, index);
+
+		} else if(isFunctionDeclaration(tokenization)) {
+			setupFunctionDeclaration(tokenization, line, index);
+			
+		} else if(isInitialization(tokenization)) {
+			setupInitialization(tokenization, line);
+			
+		} else if(isPrint(tokenization)) {
+			setupPrint(tokenization, line);
+			
+		} else if(isElse(tokenization)) {
+			throw new SyntaxException("Cannot have " + Statement.ELSE +
+				" block outside of " + Statement.IF + " clause.", line);
+			
+		} else if(isElseIf(tokenization)) {
+			throw new SyntaxException("Cannot have " + Statement.ELSE + " " + Statement.IF + 
+				" block outside of " + Statement.IF + " clause.", line);
+		
+		} else if(isOtherwise(tokenization)) {
+			throw new SyntaxException("Cannot have " + Statement.OTHERWISE +
+				" block outside of loop clause.", line);
+		
+		} else if(isCase(tokenization)) {
+			throw new SyntaxException("Cannot have " + Statement.CASE +
+				" statement outside of " + Statement.SWITCH + " block.", line);
+	
+		} else if(isDefault(tokenization)) {
+			throw new SyntaxException("Cannot have " + Statement.DEFAULT +
+				" statement outside of " + Statement.SWITCH + " block.", line);
+			
+		} else {
+			setupParse(tokenization, line);
+		}
+	}
+	
+	private int handleDefinedStatement(SourceCode.Line line, int index) {
+		if(line.getSetupException() != null) {
+			throw line.getSetupException();
+		}
+		
+		Statement statement = line.getStatementType();
+		if(statement.getType() == StatementType.SUBINTERPRETATION) {
+			return runChildInterpretation((Interpreter)line.getData(), line.getContinuationLineIndex());
+		} else if(statement == Statement.IF){
+			return handleIf(line);
+		} else if(statement == Statement.BREAK) {
+			return handleBreak(line);
+		} else if(statement == Statement.CONTINUE) {
+			return handleContinue(line);
+		} else if(statement == Statement.RETURN) {
+			return handleReturn(line);
+		} else if(statement == Statement.FUNCTION) {
+			return handleFunctionDeclaration(line);
+		} else if(statement == Statement.INITIALIZATION) {
+			handleInitialization(line);
+		} else if(statement == Statement.PRINT) {
+			handlePrint(line);
+		} else if(statement == Statement.PARSE) {
+			handleParse(line);
+		}
+		return index;
+	}
+	
 	/**
 	 * Returns whether the line represented by the tokenization is an if statement.
 	 * @param tokens the tokenization of the line to check
 	 * @return whether the line represents an if statement
 	 */
 	private boolean isIf(ArrayList<Token> tokens) {
-		return tokens.size() >= 1 && tokens.get(0).getToken().equals(Strings.IF);
+		return tokens.size() >= 1 && tokens.get(0).getToken().equals(Statement.IF.getKeyword());
 	}
 
 	/**
@@ -433,8 +448,8 @@ public class Interpreter {
 	 */
 	private boolean isElseIf(ArrayList<Token> tokens) {
 		return tokens.size() >= 2 &&
-			   tokens.get(0).getToken().equals(Strings.ELSE) &&
-			   tokens.get(1).getToken().equals(Strings.IF);
+			   tokens.get(0).getToken().equals(Statement.ELSE.getKeyword()) &&
+			   tokens.get(1).getToken().equals(Statement.IF.getKeyword());
 	}
 	
 	/**
@@ -444,7 +459,7 @@ public class Interpreter {
 	 */
 	private boolean isElse(ArrayList<Token> tokens) {
 		return tokens.size() == 2 &&
-			   tokens.get(0).getToken().equals(Strings.ELSE) &&
+			   tokens.get(0).getToken().equals(Statement.ELSE.getKeyword()) &&
 			   tokens.get(1).getToken().equals(":");
 	}
 
@@ -455,7 +470,7 @@ public class Interpreter {
 	 */
 	protected static final boolean isDo(ArrayList<Token> tokens) {
 		return tokens.size() == 2 &&
-			   tokens.get(0).getToken().equals(Strings.DO) &&
+			   tokens.get(0).getToken().equals(Statement.DO.getKeyword()) &&
 			   tokens.get(1).getToken().equals(":");
 	}
 	
@@ -466,7 +481,7 @@ public class Interpreter {
 	 */
 	protected static final boolean isOtherwise(ArrayList<Token> tokens) {
 		return tokens.size() == 2 &&
-			   tokens.get(0).getToken().equals(Strings.OTHERWISE) &&
+			   tokens.get(0).getToken().equals(Statement.OTHERWISE.getKeyword()) &&
 			   tokens.get(1).getToken().equals(":");
 	}
 
@@ -477,7 +492,7 @@ public class Interpreter {
 	 */
 	protected static final boolean isFor(ArrayList<Token> tokens) {
 		return tokens.size() >= 1 &&
-			   tokens.get(0).getToken().equals(Strings.FOR);
+			   tokens.get(0).getToken().equals(Statement.FOR.getKeyword());
 	}
 	
 	/**
@@ -487,7 +502,7 @@ public class Interpreter {
 	 */
 	protected static final boolean isUntil(ArrayList<Token> tokens) {
 		return tokens.size() >= 1 &&
-			   tokens.get(0).getToken().equals(Strings.UNTIL);
+			   tokens.get(0).getToken().equals(Statement.UNTIL.getKeyword());
 	}
 	
 	/**
@@ -497,7 +512,7 @@ public class Interpreter {
 	 */
 	protected static final boolean isWhile(ArrayList<Token> tokens) {
 		return tokens.size() >= 1 &&
-			   tokens.get(0).getToken().equals(Strings.WHILE);
+			   tokens.get(0).getToken().equals(Statement.WHILE.getKeyword());
 	}
 	
 	/**
@@ -507,7 +522,7 @@ public class Interpreter {
 	 */
 	protected static final boolean isCase(ArrayList<Token> tokens) {
 		return tokens.size() > 1 &&
-			   tokens.get(0).getToken().equals(Strings.CASE);
+			   tokens.get(0).getToken().equals(Statement.CASE.getKeyword());
 	}
 
 	/**
@@ -517,7 +532,7 @@ public class Interpreter {
 	 */
 	protected static final boolean isDefault(ArrayList<Token> tokens) {
 		return tokens.size() == 2 &&
-			   tokens.get(0).getToken().equals(Strings.DEFAULT) &&
+			   tokens.get(0).getToken().equals(Statement.DEFAULT.getKeyword()) &&
 			   tokens.get(1).getToken().equals(":");
 	}
 	
@@ -537,17 +552,17 @@ public class Interpreter {
 	
 	protected static final boolean isFunctionDeclaration(ArrayList<Token> tokens) {
 		return tokens.size() > 1 &&
-			   tokens.get(0).getToken().equals(Strings.FUNCTION);
+			   tokens.get(0).getToken().equals(Statement.FUNCTION.getKeyword());
 	}
 	
 	protected static final boolean isReturn(ArrayList<Token> tokens) {
 		return tokens.size() > 1 &&
-			   tokens.get(0).getToken().equals(Strings.RETURN);
+			   tokens.get(0).getToken().equals(Statement.RETURN.getKeyword());
 	}
 	
 	protected static final boolean isPrint(ArrayList<Token> tokens) {
 		return tokens.size() >= 1 &&
-			   tokens.get(0).getToken().equals(Strings.PRINT);
+			   tokens.get(0).getToken().equals(Statement.PRINT.getKeyword());
 	}
 	
 	/**
@@ -559,9 +574,9 @@ public class Interpreter {
 	 * @param index the index of the line
 	 * @return the line on which execution in this interpretation should continue
 	 */
-	protected int handleIf(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	protected void setupIf(ArrayList<Token> tokens, SourceCode.Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
-			throw new SyntaxException(Strings.IF + " statements must end in a colon.", line);
+			throw new SyntaxException(Statement.IF.getKeyword() + " statements must end in a colon.", line);
 		}
 		IfExecutor ifExec = new IfExecutor();
 		
@@ -582,7 +597,7 @@ public class Interpreter {
 				lineTokenization = Tokenizer.tokenize(currentContent, current);
 				if(isElseIf(lineTokenization)) {
 					if(!lineTokenization.get(lineTokenization.size() - 1).getToken().equals(":")) {
-						throw new SyntaxException(Strings.ELSE + " " + Strings.IF + 
+						throw new SyntaxException(Statement.ELSE.getKeyword() + " " + Statement.IF.getKeyword() + 
 							" statements must end in a colon.", line);
 					}
 					startToken = 2;
@@ -612,11 +627,18 @@ public class Interpreter {
 			}				
 			currentLine = endCurrentBlock + 1;
 		}
-
-		ifExec.execute();
+		
+		line.setStatementType(Statement.IF);
+		line.setData(ifExec);
+		line.setContinuationLineIndex(currentLine - 1);
+	}
+	
+	protected int handleIf(SourceCode.Line line) {
+		IfExecutor ifExec = (IfExecutor)line.getData();
+		
 		EndCondition childEndCondition = ifExec.execute();
 		if(childEndCondition == EndCondition.NORMAL) {
-			return currentLine - 1;
+			return line.getContinuationLineIndex();
 		}
 		
 		this.endCondition = childEndCondition;
@@ -640,22 +662,23 @@ public class Interpreter {
 	 * @param index the index of the line
 	 * @return the line on which execution in this interpretation should continue
 	 */
-	protected int handleDo(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	protected void setupDo(ArrayList<Token> tokens, SourceCode.Line line, int index) {
 		int doEnd = source.getBlockEnd(index);
 		SourceCode.Line endLine = source.line(doEnd + 1);
 		String endLineContent = endLine.getLineContent();
 		ArrayList<Token> endTokens = Tokenizer.tokenize(endLineContent, endLine);
 		// If the do loop ends with a while:
 		if(isWhile(endTokens)) {
-			return handleDoWhile(endTokens, line, endLine, doEnd + 1);
+			setupDoWhile(endTokens, line, endLine, doEnd + 1);
 
 		// If the do loop ends with a unti:
 		} else if(isUntil(endTokens)) {
-			return handleDoUntil(endTokens, line, endLine, doEnd + 1);
+			setupDoUntil(endTokens, line, endLine, doEnd + 1);
 
 		// If none of the above, the end of the loop is invalid.
 		} else {
-			throw new SyntaxException("Invalid end of " + Strings.DO + " loop.", endLine);
+			throw new SyntaxException("Invalid end of " + Statement.DO.getKeyword() + " loop.",
+				endLine);
 		}
 	}
 
@@ -665,12 +688,15 @@ public class Interpreter {
 	 * @param doLine the line containing the do statement
 	 * @param whileLine the line containing the while statement
 	 */
-	private int handleDoWhile(ArrayList<Token> whileTokens, SourceCode.Line doLine,
-			SourceCode.Line whileLine, int resumeLine) {
+	private void setupDoWhile(ArrayList<Token> whileTokens, SourceCode.Line doLine,
+			SourceCode.Line whileLine, int resumeLine) {		
 		DoWhileInterpreter doWhileInterpreter = new DoWhileInterpreter(this, source,
 				doLine.getNumber() + 1, whileLine.getNumber() - 1, whileLine, whileTokens, 1,
 				whileTokens.size() - 1);
-		return runChildInterpretation(doWhileInterpreter, resumeLine);
+
+		doLine.setStatementType(Statement.DO_WHILE);
+		doLine.setData(doWhileInterpreter);
+		doLine.setContinuationLineIndex(resumeLine);
 	}
 
 	/**
@@ -679,12 +705,15 @@ public class Interpreter {
 	 * @param doLine the line containing the do statement
 	 * @param whileLine the line containing the while statement
 	 */
-	private int handleDoUntil(ArrayList<Token> untilTokens, SourceCode.Line doLine,
+	private void setupDoUntil(ArrayList<Token> untilTokens, SourceCode.Line doLine,
 			SourceCode.Line untilLine, int resumeLine) {
 		DoUntilInterpreter doUntilInterpreter = new DoUntilInterpreter(this, source,
 				doLine.getNumber() + 1, untilLine.getNumber() - 1, untilLine, untilTokens, 1,
 				untilTokens.size() - 1);
-		return runChildInterpretation(doUntilInterpreter, resumeLine);
+
+		doLine.setStatementType(Statement.DO_UNTIL);
+		doLine.setData(doUntilInterpreter);
+		doLine.setContinuationLineIndex(resumeLine);
 	}
 	
 	/**
@@ -696,9 +725,9 @@ public class Interpreter {
 	 * @param index the index of the line
 	 * @return the line on which execution in this interpretation should continue
 	 */
-	protected int handleFor(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupFor(ArrayList<Token> tokens, SourceCode.Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
-			throw new SyntaxException(Strings.FOR + " statements must end in a colon.", line);
+			throw new SyntaxException(Statement.FOR.getKeyword() + " statements must end in a colon.", line);
 		}
 		
 		int semicolonCount = 0;
@@ -711,16 +740,30 @@ public class Interpreter {
 				if(semicolonCount == 2)
 					secondSeparator = tokenIndex;
 				if(semicolonCount == 3)
-					throw new SyntaxException(Strings.FOR +
+					throw new SyntaxException(Statement.FOR +
 						" predicates must have three components.", line);
 			}
 		}
 		
 		int forEnd = source.getBlockEnd(index);
-
+		int interpetationContineLine = forEnd;
+		SourceCode.Line forEndLine = source.line(forEnd + 1);
+		ArrayList<Token> forEndTokens = Tokenizer.tokenize(forEndLine.getLineContent(),
+				forEndLine);
+		OtherwiseInterpreter otherwise = null;
+		
+		if(isOtherwise(forEndTokens)) {
+			int otherwiseEnd = source.getBlockEnd(forEnd + 1);
+			otherwise = new OtherwiseInterpreter(this, source, forEnd + 2, otherwiseEnd);
+			interpetationContineLine = otherwiseEnd;
+		}
+		
 		ForInterpreter forInterpreter = new ForInterpreter(this, getSourceCode(), index + 1, forEnd,
-			line, tokens, firstSeparator, secondSeparator);
-		return runChildInterpretation(forInterpreter, forEnd);
+			line, tokens, firstSeparator, secondSeparator, otherwise);
+
+		line.setStatementType(Statement.FOR);
+		line.setData(forInterpreter);
+		line.setContinuationLineIndex(interpetationContineLine);
 	}
 
 	/**
@@ -732,9 +775,9 @@ public class Interpreter {
 	 * @param index the index of the line
 	 * @return the line on which execution in this interpretation should continue
 	 */
-	protected int handleWhile(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupWhile(ArrayList<Token> tokens, SourceCode.Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
-			throw new SyntaxException(Strings.WHILE + " statements must end in a colon.", line);
+			throw new SyntaxException(Statement.WHILE + " statements must end in a colon.", line);
 		}
 
 		int whileEnd = source.getBlockEnd(index);
@@ -752,7 +795,10 @@ public class Interpreter {
 
 		WhileInterpreter whileInterpreter = new WhileInterpreter(this, source, index + 1, whileEnd,
 			tokens, 1, tokens.size() - 2, otherwise);
-		return runChildInterpretation(whileInterpreter, interpetationContineLine);
+
+		line.setStatementType(Statement.WHILE);
+		line.setData(whileInterpreter);
+		line.setContinuationLineIndex(interpetationContineLine);
 	}
 
 	/**
@@ -764,9 +810,9 @@ public class Interpreter {
 	 * @param index the index of the line
 	 * @return the line on which execution in this interpretation should continue
 	 */
-	protected int handleUntil(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupUntil(ArrayList<Token> tokens, SourceCode.Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
-			throw new SyntaxException(Strings.UNTIL + " statements must end in a colon.", line);
+			throw new SyntaxException(Statement.UNTIL + " statements must end in a colon.", line);
 		}
 	
 		int untilEnd = source.getBlockEnd(index);
@@ -784,33 +830,60 @@ public class Interpreter {
 
 		UntilInterpreter untilInterpreter = new UntilInterpreter(this, source, index + 1, untilEnd,
 				tokens, 1, tokens.size() - 2, otherwise);
-		return runChildInterpretation(untilInterpreter, interpetationContineLine);
+
+		line.setStatementType(Statement.UNTIL);
+		line.setData(untilInterpreter);
+		line.setContinuationLineIndex(interpetationContineLine);
 	}
 	
-	protected int handleBreak(SourceCode.Line line, int index) {
+	private void setupBreak(SourceCode.Line line, int index) {
+		line.setStatementType(Statement.BREAK);
+		line.setContinuationLineIndex(getEndLine());
+	}
+	
+	protected int handleBreak(SourceCode.Line line) {
 		endCondition = EndCondition.BREAK;
 		endConditionLine = line;
+		
 		return getEndLine();
 	}
 	
-	protected int handleContinue(SourceCode.Line line, int index) {
+	private void setupContinue(SourceCode.Line line, int index) {
+		line.setStatementType(Statement.CONTINUE);
+		line.setContinuationLineIndex(getEndLine());
+	}
+
+	protected int handleContinue(SourceCode.Line line) {
 		endCondition = EndCondition.CONTINUE;
 		endConditionLine = line;
+		
 		return getEndLine();
 	}
 	
-	protected int handleReturn(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupReturn(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+		line.setStatementType(Statement.RETURN);
+		line.setContinuationLineIndex(getEndLine());
+		
+		if(tokens.size() == 1){
+			line.setData(null);
+		} else {
+			line.setData(Parser.getParseTree(this, line, tokens, 1));
+		}
+	}
+	
+	protected int handleReturn(SourceCode.Line line) {
 		endCondition = EndCondition.RETURN;
-		endConditionLine = line;
-		if(tokens.size() != 1) {
-			returnVariable = Parser.parse(this, line, tokens, 1);
+		endConditionLine = line;		
+		if(line.getData() != null) {
+			returnVariable = ((ParseTreeNode)line.getData()).operate().getValue();
 		} else {
 			returnVariable = null;
 		}
+
 		return getEndLine();
 	}
 	
-	protected int handleFunctionDeclaration(ArrayList<Token> tokens, SourceCode.Line line,
+	protected void setupFunctionDeclaration(ArrayList<Token> tokens, SourceCode.Line line,
 			int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
 			throw new SyntaxException("Function declarations must end in a colon.", line);
@@ -884,12 +957,21 @@ public class Interpreter {
 			index + 1, functionEnd, returnType, name, leftArgs, rightArgs);
 		FunctionVariable functionVariable = new FunctionVariable(functionInterpreter);
 		
+		line.setStatementType(Statement.FUNCTION);
+		line.setContinuationLineIndex(functionEnd);
+		line.setData(new Pair<String, Variable>(name, functionVariable));
+	}
+	
+	protected int handleFunctionDeclaration(SourceCode.Line line) {
+		@SuppressWarnings("unchecked")
+		Pair<String, Variable> pair = (Pair<String, Variable>)line.getData();
 		if(topLevel) {
-			vat.allocateGlobal(name, functionVariable);
+			vat.allocateGlobal(pair.fst, pair.snd);
 		} else {
-			vat.allocate(name, functionVariable);
+			vat.allocate(pair.fst, pair.snd);
 		}
-		return functionEnd;
+
+		return line.getContinuationLineIndex();
 	}
 	
 	private ArrayList<Pair<String, String>> getArgumentList(ArrayList<Token> tokens, int start,
@@ -917,36 +999,87 @@ public class Interpreter {
 		return arguments;
 	}
 	
-	protected void handleInitialization(ArrayList<Token> tokens, SourceCode.Line line) {
+	private void setupInitialization(ArrayList<Token> tokens, SourceCode.Line line) {
 		ArrayList<Token> typeTokens = getTypeName(tokens, 0);
 		String type = concatenate(typeTokens);
 		String name = tokens.get(typeTokens.size()).getToken();
+		
 		isNameValid(name, line);
 		
-		Variable value = Parser.parse(this, line, tokens, typeTokens.size() + 2);
-		if(!value.getTypeName().equals(type)) {
-			throw new SyntaxException("Expected type " + type + " but recieved type " +
-					value.getTypeName() + ".", line);
+		ParseTreeNode tree = Parser.getParseTree(this, line, tokens, typeTokens.size() + 2);
+		line.setStatementType(Statement.INITIALIZATION);
+		line.setData(new Object[] {type, name, tree});
+	}
+	
+	protected void handleInitialization(SourceCode.Line line) {
+		Object[] storedValues = (Object[])line.getData();
+		String type = (String)storedValues[0];
+		String name = (String)storedValues[1];		
+		ParseTreeNode tree = (ParseTreeNode)storedValues[2];
+		Variable value = tree.operate().getValue();
+		doInitialization(type, name, value, line);
+	}
+	
+	protected void doInitialization(String type, String name, Variable value, SourceCode.Line line) {
+		Variable store = null;
+		if(type.equals(Strings.BOOLEAN)) {
+			store = new BooleanVariable();
+		} else if(type.equals(Strings.INTEGER)) {
+			store = new IntegerVariable();
+		} else if(type.equals(Strings.DOUBLE)) {
+			store = new DoubleVariable();
+		} else if(type.equals(Strings.LONG)) {
+			store = new LongVariable();
+		} else if(type.equals(Strings.STRING)) {
+			store = new StringVariable();
+		} else if(type.equals(Strings.TYPE)) {
+			store = new TypeVariable();
+		} else if(type.startsWith("[")) {
+			store = new ArrayVariable(type);
 		}
-		value.setLiteral(false);
+		
+		try {
+			store.assign(value);
+		} catch(UnsupportedOperatorException e) {
+			e.setSourceLine(line);
+			throw e;
+		}
+		
+		store.setLiteral(false);
 		
 		if(topLevel) {
-			vat.allocateGlobal(name, value);
+			vat.allocateGlobal(name, store);
 		} else {
-			vat.allocate(name, value);
+			vat.allocate(name, store);
 		}
 	}
 	
-
-	private void handlePrint(ArrayList<Token> tokens, Line line) {
+	private void setupPrint(ArrayList<Token> tokens, Line line) {
+		line.setStatementType(Statement.PRINT);
 		if(tokens.size() == 1) {
-			System.out.println();
+			line.setData(null);
 		} else {
-			Variable var = Parser.parse(this, line, tokens, 1);
-			System.out.println(var);
+			line.setData(Parser.getParseTree(this, line, tokens, 1));
 		}
 	}
-
+	
+	protected void handlePrint(SourceCode.Line line) {
+		if(line.getData() == null) {
+			System.out.println();
+		} else {
+			System.out.println(((ParseTreeNode)line.getData()).operate().getValue());
+		}
+	}
+	
+	
+	private void setupParse(ArrayList<Token> tokens, Line line) {
+		line.setStatementType(Statement.PARSE);
+		line.setData(Parser.getParseTree(this, line, tokens));
+	}
+	
+	protected void handleParse(SourceCode.Line line) {
+		((ParseTreeNode)line.getData()).operate().getValue();
+	}
 	
 	protected void handleEndCondition(EndCondition endCondition) {
 		if(endCondition == EndCondition.NORMAL)
@@ -954,19 +1087,21 @@ public class Interpreter {
 		
 		if(topLevel) {
 			if(endCondition == EndCondition.BREAK) {
-				throw new SyntaxException("Cannot have " + Strings.BREAK +
+				throw new SyntaxException("Cannot have " + Statement.BREAK +
 					" statement outside of a loop.", endConditionLine);
 			} else if(endCondition == EndCondition.CONTINUE) {
-				throw new SyntaxException("Cannot have " + Strings.CONTINUE + 
+				throw new SyntaxException("Cannot have " + Statement.CONTINUE + 
 					" statement outside of a loop.", endConditionLine);
 			} else if(endCondition == EndCondition.RETURN) {
-				throw new SyntaxException("Cannot have " + Strings.RETURN +
+				throw new SyntaxException("Cannot have " + Statement.RETURN +
 					" statement outside of a function.", endConditionLine);
 			}
 		}
 	}	
 	
 	private int runChildInterpretation(Interpreter child, int resumeLine) {
+		child.setVAT(getVAT());
+
 		EndCondition childEndCondition = child.interpret();
 		if(childEndCondition == EndCondition.NORMAL) {
 			return resumeLine;
@@ -981,7 +1116,7 @@ public class Interpreter {
 		return getEndLine();
 	}
 	
-	private static ArrayList<Token> getTypeName(ArrayList<Token> tokens, int start) {
+	protected static ArrayList<Token> getTypeName(ArrayList<Token> tokens, int start) {
 		if(tokens.size() <= start)
 			return null;
 		ArrayList<Token> typeTokens = new ArrayList<Token>();
@@ -1030,7 +1165,7 @@ public class Interpreter {
 		return typeTokens;
 	}
 	
-	private static String concatenate(ArrayList<Token> tokens) {
+	protected static String concatenate(ArrayList<Token> tokens) {
 		String ret = "";
 		for(Token token : tokens) {
 			ret += token.getToken();
@@ -1042,7 +1177,7 @@ public class Interpreter {
 		if(!VALID_NAME.matcher(name).matches()) {
 			throw new SyntaxException("Illegal variable name '" + name + "'.", line);
 		}
-		if(Strings.KEYWORDS.contains(name)) {
+		if(Interpreter.KEYWORDS.contains(name)) {
 			throw new SyntaxException("Variable name cannot be keyword '" + name + "'.", line);
 		}
 		if(vat.hasVariable(name)) {

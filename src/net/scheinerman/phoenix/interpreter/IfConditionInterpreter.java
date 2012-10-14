@@ -30,6 +30,7 @@ public class IfConditionInterpreter extends Interpreter {
 	private ArrayList<Token> predicateTokens = null;
 	private int predicateStartToken;
 	private int predicateEndToken;
+	private ParseTreeNode predicateTree;
 	
 	public IfConditionInterpreter(Interpreter parent, SourceCode source, int start,
 			int end, ArrayList<Token> predicateTokens, int predicateStartToken,
@@ -41,10 +42,16 @@ public class IfConditionInterpreter extends Interpreter {
 	}
 	
 	public boolean isPredicateTrue() {
+		setVAT(getParent().getVAT());
+		
 		SourceCode.Line predicateLine = getSourceCode().line(getStartLine() - 1);
 		
-		Variable predicateEvaluation = Parser.parse(this, predicateLine, predicateTokens,
-			predicateStartToken, predicateEndToken);
+		if(predicateTree == null) {
+			predicateTree = Parser.getParseTree(this, predicateLine, predicateTokens,
+				predicateStartToken, predicateEndToken);
+		}
+		
+		Variable predicateEvaluation = predicateTree.operate().getValue();
 		if(predicateEvaluation instanceof BooleanVariable) {
 			return ((BooleanVariable)predicateEvaluation).getValue();
 		}

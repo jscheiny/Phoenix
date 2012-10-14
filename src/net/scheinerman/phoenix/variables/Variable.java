@@ -59,7 +59,6 @@ public abstract class Variable {
 	public abstract Variable divide(Variable x);
 	public abstract Variable mod(Variable x);
 	public abstract Variable exponentiate(Variable x);
-	public abstract Variable round(Variable x);
 	public abstract Variable negate();
 	
 	public abstract BooleanVariable equalTo(Variable x);
@@ -101,7 +100,4 @@ public abstract class Variable {
 		return assign(exponentiate(x));
 	}
 
-	public final Variable assignRound(Variable x) {
-		return assign(round(x));
-	}
 }

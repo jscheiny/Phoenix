@@ -84,6 +84,8 @@ public class LoopInterpreter extends Interpreter {
 	}
 	
 	public EndCondition interpret() {
+		loopDone = false;
+		
 		if(isPredicateCheckedAtBeginning() && isLoopDone()) {
 			if(otherwise != null) {
 				return otherwise.interpret();
@@ -133,14 +135,13 @@ public class LoopInterpreter extends Interpreter {
 	}
 	
 	@Override
-	protected int handleBreak(Line line, int index) {
+	protected int handleBreak(Line line) {
 		loopDone = true;
 		return getEndLine();
 	}
 	
 	@Override
-	protected int handleContinue(Line line, int index) {
-		System.out.println("CONTINUE");
+	protected int handleContinue(Line line) {
 		return getEndLine();
 	}
 

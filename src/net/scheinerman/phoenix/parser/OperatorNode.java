@@ -27,35 +27,62 @@ import net.scheinerman.phoenix.variables.*;
 
 public abstract class OperatorNode extends ParseTreeNode {
 
-	private static HashMap<String, Class<? extends OperatorNode>> operators = 
+	public static class Symbols { 
+		public static final String ASSIGN = "=";
+		public static final String ASSIGN_ADD = "+=";
+		public static final String ASSIGN_SUBTRACT = "-=";
+		public static final String ASSIGN_MULTIPLY = "*=";
+		public static final String ASSIGN_DIVIDE = "/=";
+		public static final String ASSIGN_MOD = "%=";
+		public static final String ASSIGN_ROUND = "#=";
+		public static final String ASSIGN_EXPONENTIATE = "^=";
+		public static final String ADD = "+";
+		public static final String SUBTRACT = "-";
+		public static final String MULTIPLY = "*";
+		public static final String DIVIDE = "/";
+		public static final String MOD = "%";
+		public static final String ROUND = "#";
+		public static final String EXPONENTIATE = "^";
+		public static final String EQUAL = "==";
+		public static final String NOT_EQUAL = "!=";
+		public static final String LESS_THAN = "<";
+		public static final String LESS_THAN_EQUAL = "<=";
+		public static final String GREATER_THAN = ">";
+		public static final String GREATER_THAN_EQUAL = ">=";
+		public static final String LOGICAL_AND = "&";
+		public static final String LOGICAL_OR = "|";
+		public static final String LOGICAL_NOT = "!";
+		public static final String ARG_SEPARATOR = ",";
+		public static final String FUNCTION_REF = "@";
+	}
+	
+	public static final HashMap<String, Class<? extends OperatorNode>> OPERATORS = 
 			new HashMap<String, Class<? extends OperatorNode>>();
 	static {
-		operators.put(Interpreter.Strings.ASSIGN, Assign.class);
-		operators.put(Interpreter.Strings.ASSIGN_ADD, AssignAdd.class);
-		operators.put(Interpreter.Strings.ASSIGN_SUBTRACT, AssignSubtract.class);
-		operators.put(Interpreter.Strings.ASSIGN_MULTIPLY, AssignMultiply.class);
-		operators.put(Interpreter.Strings.ASSIGN_DIVIDE, AssignDivide.class);
-		operators.put(Interpreter.Strings.ASSIGN_MOD, AssignMod.class);
-		operators.put(Interpreter.Strings.ASSIGN_EXPONENTIATE, AssignExponentiate.class);
-		operators.put(Interpreter.Strings.ASSIGN_ROUND, AssignRound.class);
-		operators.put(Interpreter.Strings.ADD, Add.class);
-		operators.put(Interpreter.Strings.SUBTRACT, Subtract.class);
-		operators.put(Interpreter.Strings.MULTIPLY, Multiply.class);
-		operators.put(Interpreter.Strings.DIVIDE, Divide.class);
-		operators.put(Interpreter.Strings.MOD, Mod.class);
-		operators.put(Interpreter.Strings.EXPONENTIATE, Exponentiate.class);
-		operators.put(Interpreter.Strings.ROUND, Round.class);
-		operators.put(Interpreter.Strings.EQUAL, EqualTo.class);
-		operators.put(Interpreter.Strings.NOT_EQUAL, NotEqualTo.class);
-		operators.put(Interpreter.Strings.LESS_THAN, LessThan.class);
-		operators.put(Interpreter.Strings.LESS_THAN_EQUAL, LessThanOrEqual.class);
-		operators.put(Interpreter.Strings.GREATER_THAN, GreaterThan.class);
-		operators.put(Interpreter.Strings.GREATER_THAN_EQUAL, GreaterThanOrEqual.class);
-		operators.put(Interpreter.Strings.LOGICAL_AND, LogicalAnd.class);
-		operators.put(Interpreter.Strings.LOGICAL_OR, LogicalOr.class);
-		operators.put(Interpreter.Strings.LOGICAL_NOT, LogicalNot.class);
-		operators.put(Interpreter.Strings.ARG_SEPARATOR, ArgSeparator.class);
-		operators.put(Interpreter.Strings.FUNCTION_REF, FunctionReference.class);
+		OPERATORS.put(Symbols.ASSIGN, Assign.class);
+		OPERATORS.put(Symbols.ASSIGN_ADD, AssignAdd.class);
+		OPERATORS.put(Symbols.ASSIGN_SUBTRACT, AssignSubtract.class);
+		OPERATORS.put(Symbols.ASSIGN_MULTIPLY, AssignMultiply.class);
+		OPERATORS.put(Symbols.ASSIGN_DIVIDE, AssignDivide.class);
+		OPERATORS.put(Symbols.ASSIGN_MOD, AssignMod.class);
+		OPERATORS.put(Symbols.ASSIGN_EXPONENTIATE, AssignExponentiate.class);
+		OPERATORS.put(Symbols.ADD, Add.class);
+		OPERATORS.put(Symbols.SUBTRACT, Subtract.class);
+		OPERATORS.put(Symbols.MULTIPLY, Multiply.class);
+		OPERATORS.put(Symbols.DIVIDE, Divide.class);
+		OPERATORS.put(Symbols.MOD, Mod.class);
+		OPERATORS.put(Symbols.EXPONENTIATE, Exponentiate.class);
+		OPERATORS.put(Symbols.EQUAL, EqualTo.class);
+		OPERATORS.put(Symbols.NOT_EQUAL, NotEqualTo.class);
+		OPERATORS.put(Symbols.LESS_THAN, LessThan.class);
+		OPERATORS.put(Symbols.LESS_THAN_EQUAL, LessThanOrEqual.class);
+		OPERATORS.put(Symbols.GREATER_THAN, GreaterThan.class);
+		OPERATORS.put(Symbols.GREATER_THAN_EQUAL, GreaterThanOrEqual.class);
+		OPERATORS.put(Symbols.LOGICAL_AND, LogicalAnd.class);
+		OPERATORS.put(Symbols.LOGICAL_OR, LogicalOr.class);
+		OPERATORS.put(Symbols.LOGICAL_NOT, LogicalNot.class);
+		OPERATORS.put(Symbols.ARG_SEPARATOR, ArgSeparator.class);
+		OPERATORS.put(Symbols.FUNCTION_REF, FunctionReference.class);
 	}
 	
 	
@@ -98,15 +125,15 @@ public abstract class OperatorNode extends ParseTreeNode {
 	}
 	
 	public static Set<String> getOperatorSymbols() {
-		return operators.keySet();
+		return OPERATORS.keySet();
 	}
 
 	public static Class<? extends OperatorNode> getOperator(String symbol) {
-		return operators.get(symbol);
+		return OPERATORS.get(symbol);
 	}
 	
 	public static boolean isOperator(String symbol) {
-		return operators.containsKey(symbol);
+		return OPERATORS.containsKey(symbol);
 	}
 	
 	public static OperatorNode instantiateOperator(String symbol, SourceCode.Line source) {
@@ -137,7 +164,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class Assign extends OperatorNode {
 		public Assign(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.ASSIGN, source);
+			super(Type.BINARY, Symbols.ASSIGN, source);
 		}
 
 		@Override
@@ -155,7 +182,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class AssignAdd extends OperatorNode {
 		public AssignAdd(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.ASSIGN_ADD, source);
+			super(Type.BINARY, Symbols.ASSIGN_ADD, source);
 		}
 
 		@Override
@@ -173,7 +200,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class AssignSubtract extends OperatorNode {
 		public AssignSubtract(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.ASSIGN_SUBTRACT, source);
+			super(Type.BINARY, Symbols.ASSIGN_SUBTRACT, source);
 		}
 
 		@Override
@@ -191,7 +218,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class AssignMultiply extends OperatorNode {
 		public AssignMultiply(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.ASSIGN_MULTIPLY, source);
+			super(Type.BINARY, Symbols.ASSIGN_MULTIPLY, source);
 		}
 
 		@Override
@@ -209,7 +236,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class AssignDivide extends OperatorNode {
 		public AssignDivide(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.ASSIGN_DIVIDE, source);
+			super(Type.BINARY, Symbols.ASSIGN_DIVIDE, source);
 		}
 
 		@Override
@@ -227,7 +254,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class AssignMod extends OperatorNode {
 		public AssignMod(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.ASSIGN_MOD, source);
+			super(Type.BINARY, Symbols.ASSIGN_MOD, source);
 		}
 
 		@Override
@@ -245,7 +272,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class AssignExponentiate extends OperatorNode {
 		public AssignExponentiate(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.ASSIGN_EXPONENTIATE, source);
+			super(Type.BINARY, Symbols.ASSIGN_EXPONENTIATE, source);
 		}
 
 		@Override
@@ -260,28 +287,10 @@ public abstract class OperatorNode extends ParseTreeNode {
 			return 0;
 		}
 	}
-	
-	public static class AssignRound extends OperatorNode {
-		public AssignRound(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.ASSIGN_ROUND, source);
-		}
 
-		@Override
-		protected Variable doOperation(Variable left, Variable right) {
-			if(left.isLiteral())
-				throw new SyntaxException("Cannot assign to literal value.", getSourceLine());
-			return left.assignRound(right);
-		}
-
-		@Override
-		public int precedence() {
-			return 0;
-		}
-	}
-	
 	public static class Add extends OperatorNode {
 		public Add(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.ADD, source);
+			super(Type.BINARY, Symbols.ADD, source);
 		}
 
 		@Override
@@ -297,7 +306,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class Negate extends OperatorNode {
 		public Negate(SourceCode.Line source) {
-			super(Type.PREFIX_UNARY, Interpreter.Strings.SUBTRACT, source);
+			super(Type.PREFIX_UNARY, Symbols.SUBTRACT, source);
 		}
 
 		@Override
@@ -313,7 +322,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class Subtract extends OperatorNode {
 		public Subtract(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.SUBTRACT, source);
+			super(Type.BINARY, Symbols.SUBTRACT, source);
 		}
 
 		@Override
@@ -329,7 +338,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class Multiply extends OperatorNode {
 		public Multiply(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.MULTIPLY, source);
+			super(Type.BINARY, Symbols.MULTIPLY, source);
 		}
 
 		@Override
@@ -345,7 +354,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class Divide extends OperatorNode {
 		public Divide(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.DIVIDE, source);
+			super(Type.BINARY, Symbols.DIVIDE, source);
 		}
 
 		@Override
@@ -361,7 +370,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class Mod extends OperatorNode {
 		public Mod(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.MOD, source);
+			super(Type.BINARY, Symbols.MOD, source);
 		}
 
 		@Override
@@ -377,7 +386,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 
 	public static class Exponentiate extends OperatorNode {
 		public Exponentiate(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.EXPONENTIATE, source);
+			super(Type.BINARY, Symbols.EXPONENTIATE, source);
 		}
 
 		@Override
@@ -390,26 +399,10 @@ public abstract class OperatorNode extends ParseTreeNode {
 			return 7;
 		}
 	}
-	
-	public static class Round extends OperatorNode {
-		public Round(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.ROUND, source);
-		}
 
-		@Override
-		protected Variable doOperation(Variable left, Variable right) {
-			return left.round(right);
-		}
-
-		@Override
-		public int precedence() {
-			return 5;
-		}
-	}
-	
 	public static class EqualTo extends OperatorNode {
 		public EqualTo(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.EQUAL, source);
+			super(Type.BINARY, Symbols.EQUAL, source);
 		}
 
 		@Override
@@ -425,7 +418,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 
 	public static class NotEqualTo extends OperatorNode {
 		public NotEqualTo(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.NOT_EQUAL, source);
+			super(Type.BINARY, Symbols.NOT_EQUAL, source);
 		}
 
 		@Override
@@ -441,7 +434,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class LessThan extends OperatorNode {
 		public LessThan(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.LESS_THAN, source);
+			super(Type.BINARY, Symbols.LESS_THAN, source);
 		}
 
 		@Override
@@ -457,7 +450,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class LessThanOrEqual extends OperatorNode {
 		public LessThanOrEqual(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.LESS_THAN_EQUAL, source);
+			super(Type.BINARY, Symbols.LESS_THAN_EQUAL, source);
 		}
 
 		@Override
@@ -473,7 +466,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 
 	public static class GreaterThan extends OperatorNode {
 		public GreaterThan(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.GREATER_THAN, source);
+			super(Type.BINARY, Symbols.GREATER_THAN, source);
 		}
 
 		@Override
@@ -489,7 +482,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class GreaterThanOrEqual extends OperatorNode {
 		public GreaterThanOrEqual(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.GREATER_THAN_EQUAL, source);
+			super(Type.BINARY, Symbols.GREATER_THAN_EQUAL, source);
 		}
 
 		@Override
@@ -505,7 +498,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class LogicalAnd extends OperatorNode {
 		public LogicalAnd(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.LOGICAL_AND, source);
+			super(Type.BINARY, Symbols.LOGICAL_AND, source);
 		}
 
 		@Override
@@ -521,7 +514,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class LogicalOr extends OperatorNode {
 		public LogicalOr(SourceCode.Line source) {
-			super(Type.BINARY, Interpreter.Strings.LOGICAL_OR, source);
+			super(Type.BINARY, Symbols.LOGICAL_OR, source);
 		}
 
 		@Override
@@ -537,7 +530,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class LogicalNot extends OperatorNode {
 		public LogicalNot(SourceCode.Line source) {
-			super(Type.PREFIX_UNARY, Interpreter.Strings.LOGICAL_NOT, source);
+			super(Type.PREFIX_UNARY, Symbols.LOGICAL_NOT, source);
 		}
 
 		@Override
@@ -553,7 +546,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 
 	public static class ArgSeparator extends OperatorNode {
 		public ArgSeparator(SourceCode.Line source) {
-			super(Type.NONARY, Interpreter.Strings.ARG_SEPARATOR, source);
+			super(Type.NONARY, Symbols.ARG_SEPARATOR, source);
 		}
 		
 		@Override
@@ -569,7 +562,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	
 	public static class FunctionReference extends OperatorNode {
 		public FunctionReference(SourceCode.Line source) {
-			super(Type.PREFIX_UNARY, Interpreter.Strings.FUNCTION_REF, source);
+			super(Type.PREFIX_UNARY, Symbols.FUNCTION_REF, source);
 		}
 		
 		@Override

@@ -23,7 +23,6 @@ import java.util.regex.*;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
-import net.scheinerman.phoenix.interpreter.Interpreter.Strings;
 import net.scheinerman.phoenix.parser.ParseTreeNode.Surround;
 import net.scheinerman.phoenix.parser.ParseTreeNode.Type;
 import net.scheinerman.phoenix.parser.Tokenizer.Token;
@@ -117,7 +116,7 @@ public class Parser {
 				index = close;
 			} else if(token.isDelimiter()) {
 				if((nodes.size() == 0 || nodes.get(nodes.size() - 1) instanceof OperatorNode) && 
-				   token.getToken().equals(Strings.SUBTRACT)) {
+				   token.getToken().equals(OperatorNode.Symbols.SUBTRACT)) {
 					nodes.add(new OperatorNode.Negate(source));
 				} else {
 					nodes.add(parseOperator(token, source));
@@ -311,14 +310,10 @@ public class Parser {
 			return new DataNode(var, source);
 		}
 		// Throw error if keyword...
-		if(Interpreter.Strings.KEYWORDS.contains(phrase)) {
+		if(Interpreter.KEYWORDS.contains(phrase)) {
 			throw new SyntaxException("Unexpected keyword '" + phrase + "'.", source);
 		}
-		Variable stored = interpreter.getVAT().getVariable(phrase);
-		if(stored != null) {
-			return new DataNode(stored, source);
-		}
-		throw new SyntaxException("Unexpected symbol '" + phrase + "'", source);
+		return new ResolutionNode(interpreter, phrase, source);
 	}
 	
 	private static OperatorNode parseOperator(Token token, SourceCode.Line source) {

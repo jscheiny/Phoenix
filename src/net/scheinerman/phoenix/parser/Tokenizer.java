@@ -107,7 +107,7 @@ public class Tokenizer {
 		DELIMITERS.add(new Delimiter("]"));
 		DELIMITERS.add(new Delimiter(":"));
 		DELIMITERS.add(new Delimiter(";"));
-		for(String operator : Interpreter.Strings.OPERATORS) {
+		for(String operator : OperatorNode.OPERATORS.keySet()) {
 			DELIMITERS.add(new Delimiter(operator));
 		}
 	}

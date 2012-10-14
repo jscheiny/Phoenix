@@ -1,4 +1,4 @@
-// TypeVariable.java
+// LongVariable.java
 // Copyright (C) 2012 by Jonah Scheinerman
 //
 // This file is part of the Phoenix programming language.
@@ -21,146 +21,159 @@ package net.scheinerman.phoenix.variables;
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
 
-public class TypeVariable extends Variable {
+public class LongVariable extends Variable {
 
-	private static final String TYPE_NAME = Interpreter.Strings.TYPE;
-
-	private String value;
+	private static final String TYPE_NAME = Interpreter.Strings.LONG;
 	
-	public TypeVariable() {
-		this("void");
-	}
-
-	public TypeVariable(Variable value) {
-		this(value.getTypeName());
+	private long value;
+	
+	public LongVariable() {
+		this(0);
 	}
 	
-	public TypeVariable(String value) {
+	public LongVariable(long value) {
 		super(TYPE_NAME);
 		this.value = value;
 	}
-
+	
 	@Override
 	public String stringValue() {
-		return value;
+		return "" + value;
 	}
 	
 	@Override
 	public String toString() {
+		return stringValue();
+	}
+	
+	public long getValue() {
 		return value;
 	}
 
 	@Override
+	public Variable copy() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public Variable assign(Variable x) {
+		if(x instanceof IntegerVariable) {
+			value = ((IntegerVariable)x).getValue();
+			return this;
+		} else if(x instanceof LongVariable) {
+			value = ((LongVariable)x).getValue();
+			return this;
+		}
 		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable add(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Variable subtract(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Variable multiply(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Variable divide(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Variable mod(Variable x) {
-		throw new UnsupportedOperatorException();
-	}
-	
-	@Override
-	public Variable negate() {
-		throw new UnsupportedOperationException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Variable exponentiate(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Variable negate() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public BooleanVariable equalTo(Variable x) {
-		if(x instanceof TypeVariable) {
-			return new BooleanVariable(value.equals(x.stringValue()));
-		}
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public BooleanVariable notEqualTo(Variable x) {
-		if(x instanceof TypeVariable) {
-			return new BooleanVariable(!value.equals(x.stringValue()));
-		}
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public BooleanVariable lessThan(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public BooleanVariable lessThanOrEqual(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public BooleanVariable greaterThan(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public BooleanVariable greaterThanOrEqual(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Variable logicalAnd(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Variable logicalOr(Variable x) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Variable logicalNot() {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Variable convertTo(TypeVariable type) {
-		throw new UnsupportedOperatorException();
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public Variable call(Variable left, Variable right) {
-		if(left != null) {
-			throw new InvalidCallParametersException(this, left, right, null);
-		}
-		if(value.equals(Interpreter.Strings.TYPE)) {
-			return new TypeVariable(right.getTypeName());
-		} else {
-			return right.convertTo(this);
-		}
-	}
-
-	@Override
-	public Variable copy() {
-		return new TypeVariable(value);
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

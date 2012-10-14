@@ -8,6 +8,10 @@ public class ArrayVariable extends Variable {
 
 	private ArrayList<Variable> elements;
 	
+	public ArrayVariable(String typeName) {
+		setTypeName(typeName);
+	}
+	
 	public ArrayVariable(ArrayList<Variable> variables) {
 		elements = new ArrayList<Variable>(variables.size());
 		boolean first = true;
@@ -93,11 +97,6 @@ public class ArrayVariable extends Variable {
 
 	@Override
 	public Variable exponentiate(Variable x) {
-		throw new UnsupportedOperatorException();
-	}
-
-	@Override
-	public Variable round(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 

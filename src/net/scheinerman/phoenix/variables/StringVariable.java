@@ -143,11 +143,6 @@ public class StringVariable extends Variable {
 	}
 
 	@Override
-	public Variable round(Variable x) {
-		throw new UnsupportedOperatorException();
-	}
-
-	@Override
 	public Variable negate() {
 		throw new UnsupportedOperationException();
 	}

@@ -21,6 +21,8 @@ package net.scheinerman.phoenix.interpreter;
 import java.io.*;
 import java.util.*;
 
+import net.scheinerman.phoenix.exceptions.*;
+import net.scheinerman.phoenix.interpreter.Interpreter.*;
 import net.scheinerman.phoenix.parser.*;
 import net.scheinerman.phoenix.parser.Tokenizer.Token;
 
@@ -66,7 +68,11 @@ public class SourceCode {
 		private String content;
 		private boolean empty;
 		private ArrayList<Token> tokenization = null;
-		
+		private Statement statement = Statement.UNDEFINED;
+		private Object data;
+		private int continuationLineIndex;
+		private PhoenixRuntimeException setupException;
+
 		public Line(SourceCode source, String line, int lineNumber) {
 			this.source = source;
 			this.line = line;
@@ -84,6 +90,38 @@ public class SourceCode {
 			return tokenization;
 		}
 		
+		public Statement getStatementType() {
+			return statement;
+		}
+		
+		public void setStatementType(Statement statement) {
+			this.statement = statement;
+		}
+		
+		public Object getData() {
+			return data;
+		}
+
+		public void setData(Object data) {
+			this.data = data;
+		}
+		
+		public int getContinuationLineIndex() {
+			return continuationLineIndex;
+		}
+
+		public void setContinuationLineIndex(int continuationLineIndex) {
+			this.continuationLineIndex = continuationLineIndex;
+		}
+
+		public PhoenixRuntimeException getSetupException() {
+			return setupException;
+		}
+
+		public void setSetupException(PhoenixRuntimeException setupException) {
+			this.setupException = setupException;
+		}	
+
 		public String getUnchangedLine() {
 			return line;
 		}

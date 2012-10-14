@@ -5,7 +5,7 @@ import net.scheinerman.phoenix.interpreter.*;
 
 public class FunctionVariable extends Variable {
 
-	private static final String TYPE_NAME = Interpreter.Strings.FUNCTION;
+	private static final String TYPE_NAME = Interpreter.Statement.FUNCTION.getKeyword();
 	
 	private FunctionInterpreter interpreter;
 	
@@ -76,11 +76,6 @@ public class FunctionVariable extends Variable {
 
 	@Override
 	public Variable exponentiate(Variable x) {
-		throw new UnsupportedOperatorException();
-	}
-
-	@Override
-	public Variable round(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 

@@ -97,11 +97,14 @@ public class VariableAllocationTable {
 	}
 	
 	public void print() {
+		System.out.println("==== LOCAL ====");
 		String indent = "  ";
 		for(StackFrame frame : stack) {
 			System.out.println(indent + frame);
 			indent += "  ";
 		}
 		System.out.println(indent + globalNamespace);
+		System.out.println("==== GLOBAL ===");
+
 	}
 }

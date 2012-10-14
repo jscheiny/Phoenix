@@ -10,6 +10,7 @@ public class Main {
 		try {
 			Interpreter interpreter = new Interpreter("phx/test.phx");
 			interpreter.interpret();
+			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}

@@ -117,14 +117,19 @@ public class FunctionInterpreter extends Interpreter {
 	public void call(Variable callee, Variable left, Variable right) {
 		checkArguments(callee, left, right, left, leftArgs);
 		checkArguments(callee, left, right, right, rightArgs);
+		
 		VariableAllocationTable currVAT = getVAT();
 		VariableAllocationTable executionVAT = parentVAT.getGlobal();
+		
 		executionVAT.pushStackFrame();
-		setVAT(executionVAT);
 		assignArguments(executionVAT, left, leftArgs);
 		assignArguments(executionVAT, right, rightArgs);
+		setVAT(executionVAT);
+		
 		interpret();
+		
 		executionVAT.popStackFrame();
+		
 		setVAT(currVAT);
 	}
 	
@@ -155,12 +160,12 @@ public class FunctionInterpreter extends Interpreter {
 		}
 		
 		if(endCondition == EndCondition.BREAK) {
-			throw new SyntaxException("Cannot have " + Strings.BREAK +
+			throw new SyntaxException("Cannot have " + Statement.BREAK +
 				" statement outside of a loop.", getEndConditionLine());
 		}
 		
 		if(endCondition == EndCondition.CONTINUE) {
-			throw new SyntaxException("Cannot have " + Strings.CONTINUE + 
+			throw new SyntaxException("Cannot have " + Statement.CONTINUE + 
 				" statement outside of a loop.", getEndConditionLine());
 		}
 		
@@ -169,7 +174,10 @@ public class FunctionInterpreter extends Interpreter {
 				throw new SyntaxException("Void function cannot return a value.",
 					getEndConditionLine());
 			}
-			
+			if(getReturnVariable() == null) {
+				throw new SyntaxException("Non-void function must return a value",
+					getEndConditionLine());
+			}
 			if(!getReturnType().equals(getReturnVariable().getTypeName())) {
 				throw new SyntaxException("Function expected to return " + getReturnType() +
 					" but returned " + getReturnVariable().getTypeName(), getEndConditionLine());

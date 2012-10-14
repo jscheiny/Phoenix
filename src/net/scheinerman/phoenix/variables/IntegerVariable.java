@@ -18,19 +18,12 @@
 
 package net.scheinerman.phoenix.variables;
 
-import java.util.*;
-
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
 
 public class IntegerVariable extends Variable {
 
 	private static final String TYPE_NAME = Interpreter.Strings.INTEGER;
-
-	private static final HashSet<String> AUTO_CAST = new HashSet<String>();
-	static {
-		AUTO_CAST.add(Interpreter.Strings.DOUBLE);
-	}
 	
 	private int value;
 	
@@ -63,7 +56,7 @@ public class IntegerVariable extends Variable {
 			value = ((IntegerVariable)x).getValue();
 			return this;
 		}
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -72,10 +65,12 @@ public class IntegerVariable extends Variable {
 			return new IntegerVariable(value + ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(value + ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new LongVariable(value + ((LongVariable)x).getValue());
 		} else if(x instanceof StringVariable) {
 			return new StringVariable(value + x.stringValue());
 		}
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -84,6 +79,8 @@ public class IntegerVariable extends Variable {
 			return new IntegerVariable(value - ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(value - ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new LongVariable(value - ((LongVariable)x).getValue());
 		}
 		throw new PhoenixRuntimeException();
 	}
@@ -92,6 +89,8 @@ public class IntegerVariable extends Variable {
 	public Variable multiply(Variable x) {
 		if(x instanceof IntegerVariable) {
 			return new IntegerVariable(value * ((IntegerVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new LongVariable(value * ((LongVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(value * ((DoubleVariable)x).getValue());
 		} else if(x instanceof StringVariable) {
@@ -115,6 +114,8 @@ public class IntegerVariable extends Variable {
 			return new IntegerVariable(value / ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(value / ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new LongVariable(value / ((LongVariable)x).getValue());
 		}
 		throw new PhoenixRuntimeException();
 	}
@@ -125,6 +126,8 @@ public class IntegerVariable extends Variable {
 			return new IntegerVariable(value % ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(value % ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new LongVariable(value % ((LongVariable)x).getValue());
 		}
 		throw new PhoenixRuntimeException();
 	}
@@ -135,14 +138,10 @@ public class IntegerVariable extends Variable {
 			return new IntegerVariable((int)Math.pow(value, ((IntegerVariable)x).getValue()));
 		} else if(x instanceof DoubleVariable) {
 			return new DoubleVariable(Math.pow(value, ((IntegerVariable)x).getValue()));
+		} else if(x instanceof LongVariable) {
+			return new LongVariable((long)Math.pow(value, ((LongVariable)x).getValue()));
 		}
-		throw new PhoenixRuntimeException();
-	}
-
-	@Override
-	public Variable round(Variable x) {
-		// TODO Implement round for type int.
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -157,7 +156,7 @@ public class IntegerVariable extends Variable {
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value == ((DoubleVariable)x).getValue());
 		}
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -166,8 +165,10 @@ public class IntegerVariable extends Variable {
 			return new BooleanVariable(value != ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value != ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new BooleanVariable(value != ((LongVariable)x).getValue());
 		}
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -177,7 +178,7 @@ public class IntegerVariable extends Variable {
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value < ((DoubleVariable)x).getValue());
 		}
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -186,8 +187,10 @@ public class IntegerVariable extends Variable {
 			return new BooleanVariable(value <= ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value <= ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new BooleanVariable(value <= ((LongVariable)x).getValue());
 		}
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -196,8 +199,10 @@ public class IntegerVariable extends Variable {
 			return new BooleanVariable(value > ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value > ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new BooleanVariable(value > ((LongVariable)x).getValue());
 		}
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -206,13 +211,15 @@ public class IntegerVariable extends Variable {
 			return new BooleanVariable(value >= ((IntegerVariable)x).getValue());
 		} else if(x instanceof DoubleVariable) {
 			return new BooleanVariable(value >= ((DoubleVariable)x).getValue());
+		} else if(x instanceof LongVariable) {
+			return new BooleanVariable(value >= ((LongVariable)x).getValue());
 		}
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable logicalAnd(Variable x) {
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -222,7 +229,7 @@ public class IntegerVariable extends Variable {
 
 	@Override
 	public Variable logicalNot() {
-		throw new PhoenixRuntimeException();
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -230,6 +237,8 @@ public class IntegerVariable extends Variable {
 		String typeName = type.stringValue();
 		if(typeName.equals(Interpreter.Strings.DOUBLE)) {
 			return new DoubleVariable(value);
+		} else if(typeName.equals(Interpreter.Strings.LONG)) {
+			return new LongVariable(value);
 		} else if(typeName.equals(Interpreter.Strings.STRING)) {
 			return new StringVariable("" + value);
 		} else if(typeName.equals(Interpreter.Strings.BOOLEAN)) {
