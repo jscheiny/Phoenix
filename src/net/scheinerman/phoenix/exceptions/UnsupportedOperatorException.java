@@ -21,15 +21,34 @@ package net.scheinerman.phoenix.exceptions;
 import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 import net.scheinerman.phoenix.variables.*;
 
+/**
+ * Represents an error that occurs when an operator is called with invalid operands.
+ * 
+ * @author Jonah Scheinerman
+ */
 public class UnsupportedOperatorException extends PhoenixRuntimeException {
 
 	private static final long serialVersionUID = 1L;
-
 	
+	/**
+	 * Constructs a new unsupported operator error with no message. This is typically used by the
+	 * operator methods in {@link Variable} subclasses. This then gets caught by the parser which
+	 * rethrows a new error using the
+	 * {@link #UnsupportedOperatorException(String, Variable, Variable, Line)} constructor to pass
+	 * the correct values.
+	 */
 	public UnsupportedOperatorException() {
 		setMessage(null);
 	}
 	
+	/**
+	 * Constructs a new unsupported operator error and generates an error message using the values
+	 * passed.
+	 * @param operator the symbol the operator
+	 * @param leftOperand the left-hand operand (may be null if there is none)
+	 * @param rightOperand the right-hand operand (may be null if there is none)
+	 * @param sourceLine the line on which the error occurred
+	 */
 	public UnsupportedOperatorException(String operator, Variable leftOperand,
 			Variable rightOperand, Line sourceLine) {
 		setSourceLine(sourceLine);
@@ -45,6 +64,6 @@ public class UnsupportedOperatorException extends PhoenixRuntimeException {
 						   					   leftOperand.getTypeName()));
 		}
 		
-		setErrorType("Unsupported operator");
+		setErrorType("Operator error");
 	}
 }

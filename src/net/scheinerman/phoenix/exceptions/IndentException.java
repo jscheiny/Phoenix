@@ -20,10 +20,20 @@ package net.scheinerman.phoenix.exceptions;
 
 import net.scheinerman.phoenix.interpreter.SourceCode.*;
 
+/**
+ * Represents an Phoenix error that occurs due to an invalid indentation.
+ *
+ * @author Jonah Scheinerman
+ */
 public class IndentException extends PhoenixRuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Constructs a new indentation error.
+	 * @param message the description of the error
+	 * @param sourceLine the line on which the error occurred
+	 */
 	public IndentException(String message, Line sourceLine) {
 		super(message, sourceLine);
 		setErrorType("Indent error");

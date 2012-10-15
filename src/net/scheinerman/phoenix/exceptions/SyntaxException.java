@@ -20,10 +20,20 @@ package net.scheinerman.phoenix.exceptions;
 
 import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 
+/**
+ * Represents an Phoenix error that occurs due to an invalid syntax
+ *
+ * @author Jonah Scheinerman
+ */
 public class SyntaxException extends PhoenixRuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Constructs a new syntax error.
+	 * @param message the description of the error
+	 * @param sourceLine the line on which the error occurred
+	 */
 	public SyntaxException(String message, Line sourceLine) {
 		super(message, sourceLine);
 		setErrorType("Syntax error");
