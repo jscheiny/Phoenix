@@ -64,7 +64,7 @@ public class Interpreter {
 		/** The comment start character. */
 		public static final String COMMENT_START = "//";
 
-		// Keywords
+		// Keywords that are not statments
 		public static final String TRUE = "true";
 		public static final String FALSE = "false";
 		public static final String INTEGER = "int";
@@ -101,37 +101,88 @@ public class Interpreter {
 		}
 	}
 
+	/**
+	 * Defines the different types of actions that can be taken by a {@link Statement}. There are
+	 * three main types: A subinterpretation is the most common, and represents a statement that
+	 * calls another interpreters interpret method (loops, conditionals, etc). The other two types
+	 * are other and empty. Empty statements are just statements meant to wrap a keyword and have
+	 * not inherent action. Other statements cover the other actions that can be performed
+	 * (variable initialization, printing, function declaration, etc).
+	 *
+	 * @author Jonah Scheinerman
+	 */
 	public enum StatementType {
+		/** Describes a statement that will call the interpret method on a subinterpreter. */
 		SUBINTERPRETATION,
+		/** Describes a statement that will do some other action besides a subinterpretation. */
 		OTHER,
+		/** Describes a statement that has no associated action. */
 		EMPTY;
 	}
 	
+	/**
+	 * This enum defines different types of statements that lines in the source code can be. Before
+	 * being processed, all lines are declared as {@link Statement#UNDEFINED}. Once they have been
+	 * processed once, they will then have a new statement value, that can be used to more quickly
+	 * execute the line. Thus, each line will only have to be interpreted once.
+	 * 
+	 * @author Jonah Scheinerman
+	 */
 	public static enum Statement {
+		/** The empty statement does nothing. */
 		EMPTY(null, StatementType.EMPTY),
+		/** Try block subinterpretation. */
 		TRY("try", StatementType.SUBINTERPRETATION),
+		/** Catch block which is empty as this should never be found by itself. */
 		CATCH("catch", StatementType.EMPTY),
 		IF("if", StatementType.OTHER),
+		/** Else block which is empty as this should never be found by itself. */
 		ELSE("else", StatementType.EMPTY),
+		/** Do block which is empty as this should never be found by itself. */
 		DO("do", StatementType.EMPTY),
+		/** Do-while block subinterpretation. The keyword for this is <code>null</code> as there is
+		 * no specific keyword that goes with this type of statement. */
 		DO_WHILE(null, StatementType.SUBINTERPRETATION),
+		/** Do-until block subinterpretation. The keyword for this is <code>null</code> as there is
+		 * no specific keyword that goes with this type of statement. */
 		DO_UNTIL(null, StatementType.SUBINTERPRETATION),
+		/** While block subinterpretation. */
 		WHILE("while", StatementType.SUBINTERPRETATION),
+		/** Until block subinterpretation. */
 		UNTIL("until", StatementType.SUBINTERPRETATION),
+		/** For block subinterpretation. */
 		FOR("for", StatementType.SUBINTERPRETATION),
+		/** Otherwise block which is empty as this should never be found by itself. */
 		OTHERWISE("otherwise", StatementType.EMPTY),
+		/** Break statement. */
 		BREAK("break", StatementType.OTHER),
+		/** Continue statement. */
 		CONTINUE("continue", StatementType.OTHER),
+		/** Return statement. */
 		RETURN("return", StatementType.OTHER),
+		/** Function declaration. */
 		FUNCTION("function", StatementType.OTHER),
+		/** Variable initialization. */
 		INITIALIZATION(null, StatementType.OTHER),
+		/** Print statement. */
 		PRINT("print", StatementType.OTHER),
+		/** None of the above, line that should just be parsed as is. */
 		PARSE(null, StatementType.OTHER),
+		/** An undefined statement is one that has not yet been processed. */
 		UNDEFINED(null, StatementType.EMPTY);
 
+		/** The keyword associated with this statement (if there is one). */
 		private String keyword;
+		
+		/** The type of statement. */
 		private StatementType type;
 		
+		/**
+		 * Creates a new Statement enum member. If the keyword is not null, it gets added to the
+		 * {@link Interpreter#KEYWORDS} set.
+		 * @param keyword the keyword for the statement
+		 * @param type the type of statement
+		 */
 		private Statement(String keyword, StatementType type) {
 			this.keyword = keyword;
 			this.type = type;
@@ -139,28 +190,47 @@ public class Interpreter {
 				Interpreter.KEYWORDS.add(keyword);
 		}
 		
+		/**
+		 * Get this statement's keyword.
+		 * @return the keyword for this statement
+		 */
 		public String getKeyword() {
 			return keyword;
 		}
 		
+		/**
+		 * Get this statement's type.
+		 * @return the type of the statement
+		 */
 		public StatementType getType() {
 			return type;
 		}
-		
+
 		public String toString() {
 			return keyword;
 		}
 	}
 
-	
+	/**
+	 * An enum giving the possible conditions under which an interpretation could finish.
+	 * 
+	 * @author Jonah Scheinerman
+	 */
 	public enum EndCondition {
+		/** The interpretation ended normally. */
 		NORMAL,
+		/** A return was called in the interpretation, ending it. */
 		RETURN,
+		/** A break was called in the interpretation, ending it. */
 		BREAK,
+		/** A continue was called in the interpretation, ending it. */
 		CONTINUE
 	}
 
-	/** A pattern which matches only valid variable names. */
+	/** 
+	 * A pattern which matches only valid variable names. A valid variable name must start with a
+	 * letter or an underscore and then most only consist of letters, underscores and numbers.
+	 */
 	private static final Pattern VALID_NAME = Pattern.compile("[a-zA-Z_][\\w]*");
 
 	/** The source code that is being interpreted. */
@@ -181,10 +251,16 @@ public class Interpreter {
 	/** The VAT containing all of the variables for this interpretation. */
 	private VariableAllocationTable vat;
 	
+	/** The condition under which this interpretation ended. */
 	private EndCondition endCondition = EndCondition.NORMAL;
 	
+	/** The line on which this interpretation ended, if the ending was abnormal. */
 	protected SourceCode.Line endConditionLine = null;
 	
+	/** 
+	 * If a return statement with a value was called in this interpretation, the value given in that
+	 * return statement.
+	 */
 	protected Variable returnVariable;
 
 	/**
@@ -194,7 +270,6 @@ public class Interpreter {
 	 */
 	public Interpreter(String path) throws FileNotFoundException {
 		this(new SourceCode(path));
-		topLevel = true;
 	}
 
 	/**
@@ -204,7 +279,6 @@ public class Interpreter {
 	 */
 	public Interpreter(File file) throws FileNotFoundException {
 		this(new SourceCode(file));
-		topLevel = true;
 	}
 
 	/**
@@ -213,7 +287,6 @@ public class Interpreter {
 	 */
 	public Interpreter(SourceCode source) {
 		this(null, source, 0, source.size() - 1);
-		topLevel = true;
 	}
 
 	/**
@@ -248,6 +321,10 @@ public class Interpreter {
 		return vat;
 	}
 	
+	/**
+	 * Set the VAT that will be used by this interpreter in its interpretation.
+	 * @param vat the vat for this interpretation
+	 */
 	protected final void setVAT(VariableAllocationTable vat) {
 		this.vat = vat;
 	}
@@ -268,10 +345,20 @@ public class Interpreter {
 		return end;
 	}
 	
+	/**
+	 * If the interpreter ends abnormally (the end condition is not {@link EndCondition#NORMAL}),
+	 * then the line on which the interpreter ended. Otherwise, returns <code>null</code>.
+	 * @return the line on which the interpreter ended its interpretation abnormally
+	 */
 	public final SourceCode.Line getEndConditionLine() {
 		return endConditionLine;
 	}
 	
+	/**
+	 * If a return statement was called within this interpretation, gets the variable passed to
+	 * that return statment.
+	 * @return the return variable, if a return was called in this interpretation
+	 */
 	public final Variable getReturnVariable() {
 		return returnVariable;
 	}
@@ -283,13 +370,19 @@ public class Interpreter {
 	public final SourceCode getSourceCode() {
 		return source;
 	}
-	
+
+	/**
+	 * Returns the parent interpreter to this interpreter.
+	 * @return the parent of this interpreter.
+	 */
 	public final Interpreter getParent() {
 		return parent;
 	}
 	
 	/**
-	 * Interprets and executes the code that this interpreter has been delegated.
+	 * Interprets and executes the code that this interpreter has been delegated. This returns the
+	 * state under which this interpreter ended as an {@link EndCondition}.
+	 * @return the condition under which this interpreter ended
 	 */
 	public EndCondition interpret() {
 		returnVariable = null;
@@ -322,7 +415,7 @@ public class Interpreter {
 
 		} catch(PhoenixRuntimeException phoenixException) {
 			if(topLevel) {
-				phoenixException.printTrace();
+				phoenixException.printPhoenixTrace();
 			} else {
 				throw phoenixException;
 			}
@@ -338,6 +431,14 @@ public class Interpreter {
 		return endCondition;
 	}
 	
+	/**
+	 * Sets up a line that is undefined for execution. This should only be called on lines that have
+	 * not already been processed, that is their statement value is {@link Statement#UNDEFINED}.
+	 * This does not execute the line, that must be done by the
+	 * {@link Interpreter#handleDefinedStatement(Line, int)} method.
+	 * @param line the line to be setup for execution
+	 * @param index the index of the line
+	 */
 	private void setupUndefinedStatement(SourceCode.Line line, int index) {
 		ArrayList<Token> tokenization = line.tokenize();
 		String content = line.getLineContent();
@@ -401,7 +502,14 @@ public class Interpreter {
 			setupParse(tokenization, line);
 		}
 	}
-	
+
+	/**
+	 * Executes a line of code that has already been processed. A processed line must have been
+	 * passed to {@link Interpreter#setupUndefinedStatement(Line, int)}.
+	 * @param line the line to execute
+	 * @param index the index of the line
+	 * @return the index of the line the execution should continue on
+	 */
 	private int handleDefinedStatement(SourceCode.Line line, int index) {
 		if(line.getSetupException() != null) {
 			throw line.getSetupException();
@@ -440,12 +548,22 @@ public class Interpreter {
 		return index;
 	}
 	
+	/**
+	 * Returns whether the line represented by the tokenization is a try statement.
+	 * @param tokens the tokenization of the line to check
+	 * @return whether the line represents a try statement
+	 */
 	private boolean isTry(ArrayList<Token> tokens) {
 		return tokens.size() == 2 &&
 			   tokens.get(0).getToken().equals(Statement.TRY.getKeyword()) &&
 			   tokens.get(1).getToken().equals(":");
 	}
-	
+
+	/**
+	 * Returns whether the line represented by the tokenization is a catch statement.
+	 * @param tokens the tokenization of the line to check
+	 * @return whether the line represents a catch statement
+	 */
 	private boolean isCatch(ArrayList<Token> tokens) {
 		return tokens.size() == 2 &&
 			   tokens.get(0).getToken().equals(Statement.CATCH.getKeyword()) &&
@@ -550,16 +668,31 @@ public class Interpreter {
 			   tokens.get(typeTokens.size() + 1).getToken().equals("=");
 	}
 	
+	/**
+	 * Returns whether the line represented by the tokenization is a function declaration
+	 * @param tokens the tokenization of the line to check
+	 * @return whether the line represents a function declaration
+	 */
 	protected static final boolean isFunctionDeclaration(ArrayList<Token> tokens) {
 		return tokens.size() > 1 &&
 			   tokens.get(0).getToken().equals(Statement.FUNCTION.getKeyword());
 	}
 	
+	/**
+	 * Returns whether the line represented by the tokenization is a return statement.
+	 * @param tokens the tokenization of the line to check
+	 * @return whether the line represents a rutnr statement
+	 */
 	protected static final boolean isReturn(ArrayList<Token> tokens) {
 		return tokens.size() > 1 &&
 			   tokens.get(0).getToken().equals(Statement.RETURN.getKeyword());
 	}
 	
+	/**
+	 * Returns whether the line represented by the tokenization is a print statement.
+	 * @param tokens the tokenization of the line to check
+	 * @return whether the line represents a print statement
+	 */
 	protected static final boolean isPrint(ArrayList<Token> tokens) {
 		return tokens.size() >= 1 &&
 			   tokens.get(0).getToken().equals(Statement.PRINT.getKeyword());
