@@ -209,11 +209,6 @@ public class StringVariable extends Variable {
 	public Variable logicalNot() {
 		throw new UnsupportedOperatorException();
 	}
-
-	@Override
-	public Variable convertTo(TypeVariable type) {
-		throw new InvalidConversionException(this, type.stringValue());
-	}
 	
 	@Override
 	public Variable call(Variable left, Variable right) {

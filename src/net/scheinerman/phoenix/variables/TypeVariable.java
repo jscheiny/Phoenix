@@ -142,20 +142,8 @@ public class TypeVariable extends Variable {
 	}
 
 	@Override
-	public Variable convertTo(TypeVariable type) {
-		throw new UnsupportedOperatorException();
-	}
-
-	@Override
 	public Variable call(Variable left, Variable right) {
-		if(left != null) {
-			throw new InvalidCallParametersException(this, left, right, null);
-		}
-		if(value.equals(Interpreter.Strings.TYPE)) {
-			return new TypeVariable(right.getTypeName());
-		} else {
-			return right.convertTo(this);
-		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override

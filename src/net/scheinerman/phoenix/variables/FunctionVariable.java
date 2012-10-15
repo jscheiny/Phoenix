@@ -129,9 +129,4 @@ public class FunctionVariable extends Variable {
 		throw new UnsupportedOperatorException();
 	}
 
-	@Override
-	public Variable convertTo(TypeVariable type) {
-		throw new InvalidConversionException(this, type.stringValue());
-	}
-
 }

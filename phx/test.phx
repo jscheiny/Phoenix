@@ -1,2 +1,11 @@
-for int i = 11; i < 10; i+= 1:
-	print i
+function int test(int x):
+	try:
+		afeljkaefr
+	catch:
+		return 3d
+	return 0
+
+try:
+	print test(0)
+catch:
+	print 'Bitches'

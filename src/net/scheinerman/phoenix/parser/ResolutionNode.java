@@ -17,7 +17,6 @@ public class ResolutionNode extends ParseTreeNode {
 
 	@Override
 	public int precedence() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

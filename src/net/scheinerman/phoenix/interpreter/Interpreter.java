@@ -109,11 +109,10 @@ public class Interpreter {
 	
 	public static enum Statement {
 		EMPTY(null, StatementType.EMPTY),
+		TRY("try", StatementType.SUBINTERPRETATION),
+		CATCH("catch", StatementType.EMPTY),
 		IF("if", StatementType.OTHER),
 		ELSE("else", StatementType.EMPTY),
-		SWITCH("switch", StatementType.EMPTY),
-		CASE("case", StatementType.EMPTY),
-		DEFAULT("default", StatementType.EMPTY),
 		DO("do", StatementType.EMPTY),
 		DO_WHILE(null, StatementType.SUBINTERPRETATION),
 		DO_UNTIL(null, StatementType.SUBINTERPRETATION),
@@ -184,9 +183,9 @@ public class Interpreter {
 	
 	private EndCondition endCondition = EndCondition.NORMAL;
 	
-	private SourceCode.Line endConditionLine = null;
+	protected SourceCode.Line endConditionLine = null;
 	
-	private Variable returnVariable;
+	protected Variable returnVariable;
 
 	/**
 	 * Constructs a new interpreter that interprets the code at a given file path.
@@ -299,7 +298,7 @@ public class Interpreter {
 		try {			
 			for(int index = start; index <= end; index++) {
 				SourceCode.Line line = source.line(index);
-				Statement statement = line.getStatementType();
+				Statement statement = line.getStatement();
 
 				// If the current line is indented more than the previous line, and we are not at
 				// the start of the interpretation, then this is an indentation error.
@@ -344,7 +343,10 @@ public class Interpreter {
 		String content = line.getLineContent();
 
 		if(content.isEmpty()) {
-			line.setStatementType(Statement.EMPTY);
+			line.setStatment(Statement.EMPTY);
+			
+		} else if(isTry(tokenization)) {
+			setupTry(tokenization, line, index);
 			
 		} else if(isIf(tokenization)) {
 			setupIf(tokenization, line, index);
@@ -390,14 +392,10 @@ public class Interpreter {
 		} else if(isOtherwise(tokenization)) {
 			throw new SyntaxException("Cannot have " + Statement.OTHERWISE +
 				" block outside of loop clause.", line);
-		
-		} else if(isCase(tokenization)) {
-			throw new SyntaxException("Cannot have " + Statement.CASE +
-				" statement outside of " + Statement.SWITCH + " block.", line);
-	
-		} else if(isDefault(tokenization)) {
-			throw new SyntaxException("Cannot have " + Statement.DEFAULT +
-				" statement outside of " + Statement.SWITCH + " block.", line);
+			
+		} else if(isCatch(tokenization)) {
+			throw new SyntaxException("Cannot have " + Statement.CATCH +
+				" block outside of a try clause.", line);
 			
 		} else {
 			setupParse(tokenization, line);
@@ -409,27 +407,49 @@ public class Interpreter {
 			throw line.getSetupException();
 		}
 		
-		Statement statement = line.getStatementType();
+		Statement statement = line.getStatement();
 		if(statement.getType() == StatementType.SUBINTERPRETATION) {
-			return runChildInterpretation((Interpreter)line.getData(), line.getContinuationLineIndex());
+			return runChildInterpretation((Interpreter)line.getData(),
+				line.getContinuationLineIndex());
+
 		} else if(statement == Statement.IF){
 			return handleIf(line);
+		
 		} else if(statement == Statement.BREAK) {
 			return handleBreak(line);
+		
 		} else if(statement == Statement.CONTINUE) {
 			return handleContinue(line);
+		
 		} else if(statement == Statement.RETURN) {
 			return handleReturn(line);
+		
 		} else if(statement == Statement.FUNCTION) {
 			return handleFunctionDeclaration(line);
+		
 		} else if(statement == Statement.INITIALIZATION) {
 			handleInitialization(line);
+		
 		} else if(statement == Statement.PRINT) {
 			handlePrint(line);
+		
 		} else if(statement == Statement.PARSE) {
 			handleParse(line);
+		
 		}
 		return index;
+	}
+	
+	private boolean isTry(ArrayList<Token> tokens) {
+		return tokens.size() == 2 &&
+			   tokens.get(0).getToken().equals(Statement.TRY.getKeyword()) &&
+			   tokens.get(1).getToken().equals(":");
+	}
+	
+	private boolean isCatch(ArrayList<Token> tokens) {
+		return tokens.size() == 2 &&
+			   tokens.get(0).getToken().equals(Statement.CATCH.getKeyword()) &&
+			   tokens.get(1).getToken().equals(":");
 	}
 	
 	/**
@@ -438,7 +458,8 @@ public class Interpreter {
 	 * @return whether the line represents an if statement
 	 */
 	private boolean isIf(ArrayList<Token> tokens) {
-		return tokens.size() >= 1 && tokens.get(0).getToken().equals(Statement.IF.getKeyword());
+		return tokens.size() >= 1 &&
+			   tokens.get(0).getToken().equals(Statement.IF.getKeyword());
 	}
 
 	/**
@@ -516,27 +537,6 @@ public class Interpreter {
 	}
 	
 	/**
-	 * Returns whether the line represented by the tokenization is a case statement.
-	 * @param tokens the tokenization of the line to check
-	 * @return whether the line represents a case statement
-	 */
-	protected static final boolean isCase(ArrayList<Token> tokens) {
-		return tokens.size() > 1 &&
-			   tokens.get(0).getToken().equals(Statement.CASE.getKeyword());
-	}
-
-	/**
-	 * Returns whether the line represented by the tokenization is a default statement.
-	 * @param tokens the tokenization of the line to check
-	 * @return whether the line represents a default statement
-	 */
-	protected static final boolean isDefault(ArrayList<Token> tokens) {
-		return tokens.size() == 2 &&
-			   tokens.get(0).getToken().equals(Statement.DEFAULT.getKeyword()) &&
-			   tokens.get(1).getToken().equals(":");
-	}
-	
-	/**
 	 * Returns whether the line represented by the tokenization is an initialization statement.
 	 * @param tokens the tokenization of the line to check
 	 * @return whether the line represents an initialization statement
@@ -565,6 +565,28 @@ public class Interpreter {
 			   tokens.get(0).getToken().equals(Statement.PRINT.getKeyword());
 	}
 	
+	public void setupTry(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+		int tryEnd = source.getBlockEnd(index);
+		SourceCode.Line tryEndLine = source.line(tryEnd + 1);
+		ArrayList<Token> tryEndTokens = Tokenizer.tokenize(tryEndLine.getLineContent(),
+				tryEndLine);
+		
+		if(!isCatch(tryEndTokens)) {
+			throw new SyntaxException("Try block must be followed by catch block", tryEndLine);
+		}
+		
+		int catchEnd = source.getBlockEnd(tryEnd + 1);
+		
+		
+		CatchInterpreter catchInterpreter = new CatchInterpreter(this, source, tryEnd + 2, catchEnd);
+		TryInterpreter tryInterpreter = new TryInterpreter(this, source, index + 1, tryEnd,
+			catchInterpreter);
+		
+		line.setStatment(Statement.TRY);
+		line.setContinuationLineIndex(catchEnd);
+		line.setData(tryInterpreter);
+	}
+	
 	/**
 	 * Handles an if block. This checks to make sure the if statement is valid, collects any
 	 * else-if/else blocks that are associated with them and interprets them using an
@@ -574,7 +596,7 @@ public class Interpreter {
 	 * @param index the index of the line
 	 * @return the line on which execution in this interpretation should continue
 	 */
-	protected void setupIf(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupIf(ArrayList<Token> tokens, SourceCode.Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
 			throw new SyntaxException(Statement.IF.getKeyword() + " statements must end in a colon.", line);
 		}
@@ -628,7 +650,7 @@ public class Interpreter {
 			currentLine = endCurrentBlock + 1;
 		}
 		
-		line.setStatementType(Statement.IF);
+		line.setStatment(Statement.IF);
 		line.setData(ifExec);
 		line.setContinuationLineIndex(currentLine - 1);
 	}
@@ -649,7 +671,7 @@ public class Interpreter {
 
 		return getEndLine();
 	}
-	
+
 	/**
 	 * Handles a do loop. This checks to make sure the do statement is valid by looking for
 	 * a while or an until at the end of the block. This then calls either
@@ -662,7 +684,7 @@ public class Interpreter {
 	 * @param index the index of the line
 	 * @return the line on which execution in this interpretation should continue
 	 */
-	protected void setupDo(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupDo(ArrayList<Token> tokens, SourceCode.Line line, int index) {
 		int doEnd = source.getBlockEnd(index);
 		SourceCode.Line endLine = source.line(doEnd + 1);
 		String endLineContent = endLine.getLineContent();
@@ -694,7 +716,7 @@ public class Interpreter {
 				doLine.getNumber() + 1, whileLine.getNumber() - 1, whileLine, whileTokens, 1,
 				whileTokens.size() - 1);
 
-		doLine.setStatementType(Statement.DO_WHILE);
+		doLine.setStatment(Statement.DO_WHILE);
 		doLine.setData(doWhileInterpreter);
 		doLine.setContinuationLineIndex(resumeLine);
 	}
@@ -711,7 +733,7 @@ public class Interpreter {
 				doLine.getNumber() + 1, untilLine.getNumber() - 1, untilLine, untilTokens, 1,
 				untilTokens.size() - 1);
 
-		doLine.setStatementType(Statement.DO_UNTIL);
+		doLine.setStatment(Statement.DO_UNTIL);
 		doLine.setData(doUntilInterpreter);
 		doLine.setContinuationLineIndex(resumeLine);
 	}
@@ -727,7 +749,7 @@ public class Interpreter {
 	 */
 	private void setupFor(ArrayList<Token> tokens, SourceCode.Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
-			throw new SyntaxException(Statement.FOR.getKeyword() + " statements must end in a colon.", line);
+			throw new SyntaxException(Statement.FOR + " statements must end in a colon.", line);
 		}
 		
 		int semicolonCount = 0;
@@ -761,7 +783,7 @@ public class Interpreter {
 		ForInterpreter forInterpreter = new ForInterpreter(this, getSourceCode(), index + 1, forEnd,
 			line, tokens, firstSeparator, secondSeparator, otherwise);
 
-		line.setStatementType(Statement.FOR);
+		line.setStatment(Statement.FOR);
 		line.setData(forInterpreter);
 		line.setContinuationLineIndex(interpetationContineLine);
 	}
@@ -796,7 +818,7 @@ public class Interpreter {
 		WhileInterpreter whileInterpreter = new WhileInterpreter(this, source, index + 1, whileEnd,
 			tokens, 1, tokens.size() - 2, otherwise);
 
-		line.setStatementType(Statement.WHILE);
+		line.setStatment(Statement.WHILE);
 		line.setData(whileInterpreter);
 		line.setContinuationLineIndex(interpetationContineLine);
 	}
@@ -831,13 +853,13 @@ public class Interpreter {
 		UntilInterpreter untilInterpreter = new UntilInterpreter(this, source, index + 1, untilEnd,
 				tokens, 1, tokens.size() - 2, otherwise);
 
-		line.setStatementType(Statement.UNTIL);
+		line.setStatment(Statement.UNTIL);
 		line.setData(untilInterpreter);
 		line.setContinuationLineIndex(interpetationContineLine);
 	}
 	
 	private void setupBreak(SourceCode.Line line, int index) {
-		line.setStatementType(Statement.BREAK);
+		line.setStatment(Statement.BREAK);
 		line.setContinuationLineIndex(getEndLine());
 	}
 	
@@ -849,7 +871,7 @@ public class Interpreter {
 	}
 	
 	private void setupContinue(SourceCode.Line line, int index) {
-		line.setStatementType(Statement.CONTINUE);
+		line.setStatment(Statement.CONTINUE);
 		line.setContinuationLineIndex(getEndLine());
 	}
 
@@ -861,7 +883,7 @@ public class Interpreter {
 	}
 	
 	private void setupReturn(ArrayList<Token> tokens, SourceCode.Line line, int index) {
-		line.setStatementType(Statement.RETURN);
+		line.setStatment(Statement.RETURN);
 		line.setContinuationLineIndex(getEndLine());
 		
 		if(tokens.size() == 1){
@@ -957,7 +979,7 @@ public class Interpreter {
 			index + 1, functionEnd, returnType, name, leftArgs, rightArgs);
 		FunctionVariable functionVariable = new FunctionVariable(functionInterpreter);
 		
-		line.setStatementType(Statement.FUNCTION);
+		line.setStatment(Statement.FUNCTION);
 		line.setContinuationLineIndex(functionEnd);
 		line.setData(new Pair<String, Variable>(name, functionVariable));
 	}
@@ -1007,7 +1029,7 @@ public class Interpreter {
 		isNameValid(name, line);
 		
 		ParseTreeNode tree = Parser.getParseTree(this, line, tokens, typeTokens.size() + 2);
-		line.setStatementType(Statement.INITIALIZATION);
+		line.setStatment(Statement.INITIALIZATION);
 		line.setData(new Object[] {type, name, tree});
 	}
 	
@@ -1055,7 +1077,7 @@ public class Interpreter {
 	}
 	
 	private void setupPrint(ArrayList<Token> tokens, Line line) {
-		line.setStatementType(Statement.PRINT);
+		line.setStatment(Statement.PRINT);
 		if(tokens.size() == 1) {
 			line.setData(null);
 		} else {
@@ -1073,7 +1095,7 @@ public class Interpreter {
 	
 	
 	private void setupParse(ArrayList<Token> tokens, Line line) {
-		line.setStatementType(Statement.PARSE);
+		line.setStatment(Statement.PARSE);
 		line.setData(Parser.getParseTree(this, line, tokens));
 	}
 	

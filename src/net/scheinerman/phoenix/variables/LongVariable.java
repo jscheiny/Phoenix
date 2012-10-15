@@ -70,32 +70,62 @@ public class LongVariable extends Variable {
 
 	@Override
 	public Variable add(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new LongVariable(value + ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new DoubleVariable(value + ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new LongVariable(value + ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable subtract(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new LongVariable(value - ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new DoubleVariable(value - ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new LongVariable(value - ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable multiply(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new LongVariable(value * ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new DoubleVariable(value * ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new LongVariable(value * ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable divide(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new LongVariable(value / ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new DoubleVariable(value / ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new LongVariable(value / ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable mod(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new LongVariable(value % ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new DoubleVariable(value % ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new LongVariable(value % ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -106,74 +136,99 @@ public class LongVariable extends Variable {
 
 	@Override
 	public Variable negate() {
-		// TODO Auto-generated method stub
-		return null;
+		return new LongVariable(-value);
 	}
 
 	@Override
 	public BooleanVariable equalTo(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new BooleanVariable(value == ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new BooleanVariable(value == ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new BooleanVariable(value == ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public BooleanVariable notEqualTo(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new BooleanVariable(value == ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new BooleanVariable(value == ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new BooleanVariable(value == ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public BooleanVariable lessThan(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new BooleanVariable(value < ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new BooleanVariable(value < ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new BooleanVariable(value < ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public BooleanVariable lessThanOrEqual(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new BooleanVariable(value <= ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new BooleanVariable(value <= ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new BooleanVariable(value <= ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public BooleanVariable greaterThan(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new BooleanVariable(value > ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new BooleanVariable(value > ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new BooleanVariable(value > ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public BooleanVariable greaterThanOrEqual(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new BooleanVariable(value >= ((LongVariable) x).getValue());
+		} else if(x instanceof DoubleVariable) {
+			return new BooleanVariable(value >= ((DoubleVariable) x).getValue());
+		} else if(x instanceof IntegerVariable) {
+			return new BooleanVariable(value >= ((IntegerVariable) x).getValue());
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable logicalAnd(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable logicalOr(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable logicalNot() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Variable convertTo(TypeVariable type) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable call(Variable left, Variable right) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperatorException();
 	}
 
 }

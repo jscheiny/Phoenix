@@ -233,21 +233,6 @@ public class IntegerVariable extends Variable {
 	}
 
 	@Override
-	public Variable convertTo(TypeVariable type) {
-		String typeName = type.stringValue();
-		if(typeName.equals(Interpreter.Strings.DOUBLE)) {
-			return new DoubleVariable(value);
-		} else if(typeName.equals(Interpreter.Strings.LONG)) {
-			return new LongVariable(value);
-		} else if(typeName.equals(Interpreter.Strings.STRING)) {
-			return new StringVariable("" + value);
-		} else if(typeName.equals(Interpreter.Strings.BOOLEAN)) {
-			return new BooleanVariable(value != 0);
-		}
-		throw new InvalidConversionException(this, typeName);
-	}
-
-	@Override
 	public Variable call(Variable left, Variable right) {
 		throw new UnsupportedOperatorException();
 	}

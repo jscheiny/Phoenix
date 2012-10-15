@@ -90,11 +90,11 @@ public class SourceCode {
 			return tokenization;
 		}
 		
-		public Statement getStatementType() {
+		public Statement getStatement() {
 			return statement;
 		}
 		
-		public void setStatementType(Statement statement) {
+		public void setStatment(Statement statement) {
 			this.statement = statement;
 		}
 		

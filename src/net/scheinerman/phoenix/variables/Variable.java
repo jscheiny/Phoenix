@@ -71,8 +71,6 @@ public abstract class Variable {
 	public abstract Variable logicalAnd(Variable x);
 	public abstract Variable logicalOr(Variable x);	
 	public abstract Variable logicalNot();
-
-	public abstract Variable convertTo(TypeVariable type);
 	
 	public abstract Variable call(Variable left, Variable right);
 	

@@ -175,11 +175,6 @@ public class ArrayVariable extends Variable {
 	}
 
 	@Override
-	public Variable convertTo(TypeVariable type) {
-		throw new UnsupportedOperatorException();
-	}
-
-	@Override
 	public Variable call(Variable left, Variable right) {
 		if(right == null) {
 			throw new InvalidCallParametersException(this, left, right, null);

@@ -1,63 +1,36 @@
-// BooleanVariable.java
-// Copyright (C) 2012 by Jonah Scheinerman
-//
-// This file is part of the Phoenix programming language.
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 package net.scheinerman.phoenix.variables;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
 
-public class BooleanVariable extends Variable {
+public class VoidVariable extends Variable {
 
-	private static final String TYPE_NAME = Interpreter.Strings.BOOLEAN;
-
-	private boolean value;
+	private static final String TYPE_NAME = Interpreter.Strings.VOID;
 	
-	public BooleanVariable() {
-		this(false);
-	}
-	
-	public BooleanVariable(boolean value) {
+	public VoidVariable() {
 		super(TYPE_NAME);
-		this.value = value;
 	}
 	
 	@Override
 	public String stringValue() {
-		return "" + value;
+		return TYPE_NAME;
 	}
 	
 	@Override
 	public String toString() {
-		return "" + value;
+		return stringValue();
 	}
-	
-	public boolean getValue() {
-		return value;
+
+	@Override
+	public Variable copy() {
+		throw new SyntaxException("Cannot pass void type variable.", null);
 	}
-	
+
 	@Override
 	public Variable assign(Variable x) {
-		if(x instanceof BooleanVariable) {
-			value = ((BooleanVariable)x).getValue();
-		}
 		throw new UnsupportedOperatorException();
 	}
-	
+
 	@Override
 	public Variable add(Variable x) {
 		throw new UnsupportedOperatorException();
@@ -90,22 +63,16 @@ public class BooleanVariable extends Variable {
 
 	@Override
 	public Variable negate() {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperatorException();
 	}
-	
+
 	@Override
 	public BooleanVariable equalTo(Variable x) {
-		if(x instanceof BooleanVariable) {
-			return new BooleanVariable(value == ((BooleanVariable)x).getValue());
-		}
 		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public BooleanVariable notEqualTo(Variable x) {
-		if(x instanceof BooleanVariable) {
-			return new BooleanVariable(value == ((BooleanVariable)x).getValue());
-		}
 		throw new UnsupportedOperatorException();
 	}
 
@@ -131,23 +98,17 @@ public class BooleanVariable extends Variable {
 
 	@Override
 	public Variable logicalAnd(Variable x) {
-		if(x instanceof BooleanVariable) {
-			return new BooleanVariable(value && ((BooleanVariable)x).getValue());
-		}
 		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable logicalOr(Variable x) {
-		if(x instanceof BooleanVariable) {
-			return new BooleanVariable(value || ((BooleanVariable)x).getValue());
-		}
 		throw new UnsupportedOperatorException();
 	}
 
 	@Override
 	public Variable logicalNot() {
-		return new BooleanVariable(!value);
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override
@@ -155,9 +116,4 @@ public class BooleanVariable extends Variable {
 		throw new UnsupportedOperatorException();
 	}
 
-	@Override
-	public Variable copy() {
-		return new BooleanVariable(value);
-	}
-	
 }

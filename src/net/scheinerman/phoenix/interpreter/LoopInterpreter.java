@@ -88,7 +88,10 @@ public class LoopInterpreter extends Interpreter {
 		
 		if(isPredicateCheckedAtBeginning() && isLoopDone()) {
 			if(otherwise != null) {
-				return otherwise.interpret();
+				EndCondition condition = otherwise.interpret();
+				endConditionLine = otherwise.getEndConditionLine();
+				returnVariable = otherwise.getReturnVariable();
+				return condition;
 			}
 			return EndCondition.NORMAL;
 		}
@@ -116,7 +119,7 @@ public class LoopInterpreter extends Interpreter {
 	public final boolean checkPredicate() {
 		if(predicateParseTree == null) {
 			predicateParseTree = Parser.getParseTree(this, predicateLine, predicateTokens,
-					predicateStartToken, predicateEndToken);
+				predicateStartToken, predicateEndToken);
 		}
 		Variable predicateEvaluation = predicateParseTree.operate().getValue();
 		if(predicateEvaluation instanceof BooleanVariable) {

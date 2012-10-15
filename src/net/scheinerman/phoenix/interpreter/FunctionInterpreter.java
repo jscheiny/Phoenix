@@ -131,6 +131,10 @@ public class FunctionInterpreter extends Interpreter {
 		executionVAT.popStackFrame();
 		
 		setVAT(currVAT);
+		
+		if(returnVariable == null) {
+			returnVariable = new VoidVariable();
+		}
 	}
 	
 	public String getName() {
@@ -156,6 +160,10 @@ public class FunctionInterpreter extends Interpreter {
 	@Override
 	protected void handleEndCondition(EndCondition endCondition) {
 		if(endCondition == EndCondition.NORMAL) {
+			if(!getReturnType().equals(Strings.VOID)) {
+				throw new SyntaxException("Non-void function must return a value",
+					getEndConditionLine());
+			}
 			return;
 		}
 		
