@@ -22,13 +22,26 @@ import java.util.*;
 
 import net.scheinerman.phoenix.parser.Tokenizer.*;
 
+/**
+ * Interprets and executes a do-while loop. A do-while loop is a loop that waits for the predicate
+ * to become false, and does not check the predicate at the beginning. This loop cannot have an
+ * otherwise block.
+ *
+ * @author Jonah Scheinerman
+ */
 public class DoWhileInterpreter extends LoopInterpreter {
 
-	public DoWhileInterpreter(Interpreter parent, SourceCode source, int start, int end,
-			SourceCode.Line predicateLine, String predicate) {
-		super(parent, source, start, end, predicateLine, predicate, false, false);
-	}
-
+	/**
+	 * Creates a new do-while loop interpreter.
+	 * @param parent the interpreter that is instantiating and running this interpreter
+	 * @param source the source code that is being interpreted
+	 * @param start the line on which to start interpreting
+	 * @param end the last line to interpret (the line at this index will be interpreted)
+	 * @param predicateLine the line containing the loop predicate
+	 * @param predicateTokens the tokenization of the predicate
+	 * @param predicateStartToken the starting index of the predicate in the tokenization
+	 * @param predicateEndToken the ending index of the predicate in the tokenization (inclusive)
+	 */
 	public DoWhileInterpreter(Interpreter parent, SourceCode source, int start, int end,
 			SourceCode.Line predicateLine, ArrayList<Token> predicateTokens,
 			int predicateStartToken, int predicateEndToken) {

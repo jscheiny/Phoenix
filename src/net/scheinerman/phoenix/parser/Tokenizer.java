@@ -23,31 +23,68 @@ import java.util.*;
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
 
+/**
+ * Provides methods to turn strings of code into lists of tokens, separated by delimiters and
+ * whitespace. Delimiters are defined by the operators in {@link OperatorNode#OPERATOR_DELIMITERS}
+ * and some other symbols such as (, ), [, ], :, and ;.
+ *
+ * @author Jonah Scheinerman
+ */
 public class Tokenizer {
 	
+	/**
+	 * Represents a string token which may be a delimiter, or just a regular token. Effectively,
+	 * this is a wrapper for a String and a boolean - the token and whether it is a delimiter.
+	 *
+	 * @author Jonah Scheinerman
+	 */
 	public static class Token {
 		
+		/** The string token. */
 		private String token;
-		private boolean delimiter;
+
+		/** Whether this token is a delimiter. */
+		private boolean delimiter = false;
 		
+		/**
+		 * Create a new token that is not a delimiter.
+		 * @param token the string token
+		 */
 		public Token(String token) {
 			this(token, false);
 		}
 		
+		/**
+		 * Create a new token.
+		 * @param token the string token
+		 * @param delimiter whether this is a delimiter
+		 */
 		public Token(String token, boolean delimiter) {
 			this.token = token;
 			this.delimiter = delimiter;
 		}
 
+		/**
+		 * Creates a new token from a delimiter.
+		 * @param delimiter the delimiter from which to extract the token
+		 */
 		public Token(Delimiter delimiter) {
 			this.token = delimiter.getDelimiter();
 			this.delimiter = true;
 		}
-		
+
+		/**
+		 * Returns the string token.
+		 * @return the string token
+		 */
 		public String getToken() {
 			return token;
 		}
 
+		/**
+		 * Returns whether this token is a delimiter.
+		 * @return whether this token is a delimiter
+		 */
 		public boolean isDelimiter() {
 			return delimiter;
 		}
@@ -59,21 +96,48 @@ public class Tokenizer {
 		
 	}
 
+	/**
+	 * Represents a delimiter that is used to parse the set of tokens. The comparison between
+	 * delimiters sorts first by the length of the delimiter, and then by the delimiter string
+	 * ifself. Thus, longer delimiters will be checked first.
+	 *
+	 * @author Jonah Scheinerman
+	 */
 	public static class Delimiter implements Comparable<Delimiter> {
+
+		/** The string delimiter symbol. */
 		private String delimiter;
 
+		/**
+		 * Creates a new delimiter with a given delimiter symbol.
+		 * @param delimiter the string delimiter symbol
+		 */
 		public Delimiter(String delimiter) {
 			this.delimiter = delimiter;
 		}
 
+		/**
+		 * Returns the delimiter symbol.
+		 * @return the delimiter symbol
+		 */
 		public String getDelimiter() {
 			return delimiter;
 		}
 		
+		/**
+		 * Returns the length of the delimiter symbol.
+		 * @return the length of the delimiter symbol
+		 */
 		public int length() {
 			return delimiter.length();
 		}
 		
+		/**
+		 * Returns whether the given delimiter occurs in the phrase at the given starting index.
+		 * @param phrase the phrase to search in
+		 * @param startIndex the index at which to check for the delimiter
+		 * @return true if the phrase has the delimiter at the given starting index
+		 */
 		public boolean occursAt(String phrase, int startIndex) {
 			for(int delimiterIndex = 0; delimiterIndex < delimiter.length(); delimiterIndex++) {
 				if(delimiterIndex + startIndex >= phrase.length()) {
@@ -99,6 +163,7 @@ public class Tokenizer {
 		}
 	}
 		
+	/** The sorted set of delimiters that will be used to tokenize the string. */
 	private static final TreeSet<Delimiter> DELIMITERS = new TreeSet<Delimiter>();
 	static {
 		DELIMITERS.add(new Delimiter("("));
@@ -107,11 +172,20 @@ public class Tokenizer {
 		DELIMITERS.add(new Delimiter("]"));
 		DELIMITERS.add(new Delimiter(":"));
 		DELIMITERS.add(new Delimiter(";"));
-		for(String operator : OperatorNode.OPERATORS.keySet()) {
+		for(String operator : OperatorNode.OPERATOR_DELIMITERS) {
 			DELIMITERS.add(new Delimiter(operator));
 		}
 	}
 	
+	/** 
+	 * Separates a string into an array of tokens. This separates the string based on three
+	 * different factors: string literals, whitespace, and delimiters (found in
+	 * {@link Tokenizer#DELIMITERS}). Whitespace tokens are not returned. String literals,
+	 * delimiters, and any in between tokens will be returned.
+	 * @param phrase the phrase to tokenize
+	 * @param the source line from which this phrase was generated.
+	 * @return the tokenized representation of the phrase
+	 */
 	public static ArrayList<Token> tokenize(String phrase, SourceCode.Line source) {
 		ArrayList<Token> tokens = new ArrayList<Token>();
 		
@@ -193,7 +267,7 @@ public class Tokenizer {
 			if(!sub.isEmpty())
 				tokens.add(new Token(sub));
 		}
-		
+
 		return tokens;
 	}
 }

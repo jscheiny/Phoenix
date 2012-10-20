@@ -18,8 +18,21 @@
 
 package net.scheinerman.phoenix.interpreter;
 
+/**
+ * An interpreter which executes an else block. This is a block that only executes if all of the
+ * other if/else if blocks in an if clause fail to execute.
+ *
+ * @author Jonah Scheinerman
+ */
 public class ElseInterpreter extends Interpreter {
 
+    /**
+     * Construct a new else interpreter.
+     * @param parent the parent interpreter that is instantiating and running this one
+     * @param source the source code that is being interpreted
+     * @param start the line on which to start interpreting
+     * @param end the last line to interpret (the line at this index will be interpreted)
+     */
 	public ElseInterpreter(Interpreter parent, SourceCode source, int start, int end) {
 		super(parent, source, start, end);
 	}

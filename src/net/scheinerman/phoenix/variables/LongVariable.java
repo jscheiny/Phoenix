@@ -130,8 +130,14 @@ public class LongVariable extends Variable {
 
 	@Override
 	public Variable exponentiate(Variable x) {
-		// TODO Auto-generated method stub
-		return null;
+		if(x instanceof LongVariable) {
+			return new LongVariable((long)Math.pow(value, ((LongVariable) x).getValue()));
+		} else if(x instanceof DoubleVariable) {
+			return new DoubleVariable(Math.pow(value, ((DoubleVariable) x).getValue()));
+		} else if(x instanceof IntegerVariable) {
+			return new LongVariable((long)Math.pow(value, ((IntegerVariable) x).getValue()));
+		}
+		throw new UnsupportedOperatorException();
 	}
 
 	@Override

@@ -23,54 +23,133 @@ import java.util.regex.*;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.parser.OperatorNode.*;
 import net.scheinerman.phoenix.parser.ParseTreeNode.Surround;
 import net.scheinerman.phoenix.parser.ParseTreeNode.Type;
 import net.scheinerman.phoenix.parser.Tokenizer.Token;
 import net.scheinerman.phoenix.variables.*;
 
+/**
+ * Provides methods to translate Phoenix expressions into parse trees and then evaluate those
+ * trees into the variable value of the expression. The two main public methods of this class
+ * are
+ * {@link Parser#parse(Interpreter, net.scheinerman.phoenix.interpreter.SourceCode.Line, ArrayList, int, int)}
+ * and
+ * {@link Parser#getParseTree(Interpreter, net.scheinerman.phoenix.interpreter.SourceCode.Line, ArrayList, int, int)}.
+ * The latter builds a parse tree for an expression and returns this root of this parse tree.
+ * The former builds the same tree but then executes that tree. Generating the parse tree is useful
+ * for intepreting statements that will need to be executed multiple times, as this is a expensive
+ * operation, and should be done as little as possible.
+ *
+ * @author Jonah Scheinerman
+ */
 public class Parser {
 	
-	private static final Pattern INTEGER_LITERAL = Pattern.compile("\\d+");
-	private static final Pattern DOUBLE_LITERAL_1 = Pattern.compile("\\d+d");
-	private static final Pattern DOUBLE_LITERAL_2 = Pattern.compile("\\.\\d+d?");
-	private static final Pattern DOUBLE_LITERAL_3 = Pattern.compile("\\d+\\.\\d*d?");
-	
+	/**
+	 * Parses a string expression and returns its variable value.
+	 * @param interpreter the interpreter that is being used to interpret the expression
+	 * @param source the source line from which the expression was taken
+	 * @param expression the string expression to parse
+	 * @return the value of the expression
+	 */
 	public static Variable parse(Interpreter interpreter, SourceCode.Line source,
 			String expression) {
 		return parse(interpreter, source, Tokenizer.tokenize(expression, source));
 	}
 	
+	/**
+	 * Parses a tokenized expression and returns its variable value.
+	 * @param interpreter the interpreter that is being used to interpret the expression
+	 * @param source the source line from which the expression was taken
+	 * @param tokens the tokens containing the expression to parse
+	 * @return the value of the expression
+	 */
 	public static Variable parse(Interpreter interpreter, SourceCode.Line source,
 			ArrayList<Token> tokens) {
 		return parse(interpreter, source, tokens, 0);
 	}
 
+	/**
+	 * Parses a tokenized expression starting from a given token and returns its variable value.
+	 * @param interpreter the interpreter that is being used to interpret the expression
+	 * @param source the source line from which the expression was taken
+	 * @param tokens the tokens containing the expression to parse
+	 * @param startIndex the index at which to start parsing
+	 * @return the value of the expression starting at the start index
+	 */
 	public static Variable parse(Interpreter interpreter, SourceCode.Line source,
 			ArrayList<Token> tokens, int startIndex) {
 		return parse(interpreter, source, tokens, startIndex, tokens.size() - 1);
 	}
 	
+	/**
+	 * Parses a tokenized expression starting from a given token and ending on another token and 
+	 * returns its variable value.
+	 * @param interpreter the interpreter that is being used to interpret the expression
+	 * @param source the source line from which the expression was taken
+	 * @param tokens the tokens containing the expression to parse
+	 * @param startIndex the index at which to start parsing
+	 * @param endIndex the index at which to stop parsing (inclusive)
+	 * @return the value of the expression between the starting and ending indices (inclusive)
+	 */
 	public static Variable parse(Interpreter interpreter, SourceCode.Line source,
 			ArrayList<Token> tokens, int startIndex, int endIndex) {
 		return getParseTree(interpreter, source, tokens, startIndex, endIndex).operate()
 			   .getValue();
 	}
 	
+	/**
+	 * Builds the parse tree for a given string expression. In order to find the value of the
+	 * expression simply take the output and call the following:
+	 * <code>Variable value = Parser.getParseTree( ... ).operate().getValue();</code>.
+	 * This is useful for when an expression should be evaluated multiple times, and does not make
+	 * sense to repeatedly build the tree.
+	 * @param interpreter the interpreter that is being used to interpret the expression
+	 * @param source the source line from which the expression was taken
+	 * @param expression the string expression to parse
+	 * @return the parse tree for the expression
+	 */
 	public static ParseTreeNode getParseTree(Interpreter interpreter, SourceCode.Line source,
 			String expression) {
 		return getParseTree(interpreter, source, Tokenizer.tokenize(expression, source));
 	}
-	
+
+	/**
+	 * Builds the parse tree for a given tokenized expression.
+	 * @param interpreter the interpreter that is being used to interpret the expression
+	 * @param source the source line from which the expression was taken
+	 * @param tokens the tokens containing the expression to parse
+	 * @return the parse tree for the expression
+	 */
 	public static ParseTreeNode getParseTree(Interpreter interpreter, SourceCode.Line source,
 			ArrayList<Token> tokens) {
 		return getParseTree(interpreter, source, tokens, 0);
 	}
 
+	/**
+	 * Builds the parse tree for a given tokenized expression starting at a given token index.
+	 * @param interpreter the interpreter that is being used to interpret the expression
+	 * @param source the source line from which the expression was taken
+	 * @param tokens the tokens containing the expression to parse
+	 * @param startIndex the index at which to start parsing the expression
+	 * @return the parse tree for the expression
+	 */
 	public static ParseTreeNode getParseTree(Interpreter interpreter, SourceCode.Line source,
 			ArrayList<Token> tokens, int startIndex) {
 		return getParseTree(interpreter, source, tokens, startIndex, tokens.size() - 1);
 	}
-	
+
+	/**
+	 * Builds the parse tree for a given tokenized expression starting and ending at a given token
+	 * indices.
+	 * @param interpreter the interpreter that is being used to interpret the expression
+	 * @param source the source line from which the expression was taken
+	 * @param tokens the tokens containing the expression to parse
+	 * @param startIndex the index at which to start parsing the expression
+	 * @param endIndex the index at which to stop parsing the expression (inclusive)
+	 * @return the parse tree for the expression between the starting and ending indices
+	 * (inclusive).
+	 */	
 	public static ParseTreeNode getParseTree(Interpreter interpreter, SourceCode.Line source,
 			ArrayList<Token> tokens, int startIndex, int endIndex) {
 		if(!parensValid(tokens, startIndex, endIndex)) {
@@ -79,6 +158,58 @@ public class Parser {
 		return parse(interpreter, source, tokens, startIndex, endIndex, Surround.NONE);
 	}
 	
+	/**
+	 * Checks whether parentheses and brackets are formatted correctly within the tokenized
+	 * expression.
+	 * @param tokens the tokens to check
+	 * @param startIndex the index at which to start checking.
+	 * @param endIndex the index at which to stop checking (inclusive)
+	 * @return true if the parentheses match, false if there is a mismatch
+	 */
+	private static boolean parensValid(ArrayList<Token> tokens, int startIndex, int endIndex) {
+		Stack<String> parens = new Stack<String>();
+		for(int index = startIndex; index <= endIndex; index++) {
+			String token = tokens.get(index).getToken();
+			if(token.equals("(")) {
+				parens.push(")");
+			}
+			if(token.equals("[")) {
+				parens.push("]");
+			}
+			if(token.equals(")") || token.equals("]")) {
+				if(parens.isEmpty())
+					return false;
+				if(!parens.pop().equals(token))
+					return false;
+			}
+		}
+		return parens.isEmpty();
+	}
+	
+	/** A pattern that matches integer literals. */
+	private static final Pattern INTEGER_LITERAL = Pattern.compile("\\d+");
+
+	/** First of the patterns that matches double literals. */
+	private static final Pattern DOUBLE_LITERAL_1 = Pattern.compile("\\d+d");
+
+	/** Second of the patterns that matches double literals. */
+	private static final Pattern DOUBLE_LITERAL_2 = Pattern.compile("\\.\\d+d?");
+
+	/** Third of the patterns that matches double literals. */
+	private static final Pattern DOUBLE_LITERAL_3 = Pattern.compile("\\d+\\.\\d*d?");
+
+	/**
+	 * Parses and builds a parse tree for a given expression. This is a recursive helper method that
+	 * recurs on every nested parenthesized expression within the larger expression.
+	 * @param interpreter the interpreter being used to parse the expression
+	 * @param source the line from which the expression was taken
+	 * @param tokens the tokens to parse into the expression tree
+	 * @param start the index of the token at which to start parsing
+	 * @param end the index of the token at which to end parsing (inclusive)
+	 * @param surround the surround type of the given expression
+	 * @return the parse tree built from the expression between the starting and ending indices
+	 * (inclusive)
+	 */
 	private static ParseTreeNode parse(Interpreter interpreter, SourceCode.Line source,
 			ArrayList<Token> tokens, int start, int end, Surround surround) {
 		if(end < start) {
@@ -114,12 +245,12 @@ public class Parser {
 				nodes.add(parse(interpreter, source, tokens, index + 1, close - 1,
 								Surround.BRACKETS));
 				index = close;
-			} else if(token.isDelimiter()) {
+			} else if(OperatorNode.isOperator(token.getToken())) {
 				if((nodes.size() == 0 || nodes.get(nodes.size() - 1) instanceof OperatorNode) && 
 				   token.getToken().equals(OperatorNode.Symbols.SUBTRACT)) {
 					nodes.add(new OperatorNode.Negate(source));
 				} else {
-					nodes.add(parseOperator(token, source));
+					nodes.add(OperatorNode.instantiateOperator(token.getToken(), source));
 				}
 			} else {
 				nodes.add(parseToken(token, interpreter, source));
@@ -128,9 +259,18 @@ public class Parser {
 		setUpReferences(nodes, source);
 		setUpCalls(nodes, source);
 		ParseTreeNode reduced = reduce(nodes, source, surround);
+		if(!reduced.areOperandsSet()) {
+			throw new SyntaxException("Missing operands.", source);
+		}
 		return reduced;
 	}
 	
+	/** 
+	 * Sets up function references in the list of nodes. If a {@link FunctionReference}
+	 * node is found in the list, then the next token after it is set as the function name that is
+	 * being referenced.
+	 * @param nodes the list of nodes in which to set up function references
+	 */
 	private static void setUpReferences(ArrayList<ParseTreeNode> nodes, SourceCode.Line source) {
 		for(int index = 0; index < nodes.size(); index++) {
 			ParseTreeNode curr = nodes.get(index);
@@ -153,6 +293,11 @@ public class Parser {
 		}
 	}
 	
+	/**
+	 * Sets up call nodes so that when operating, proper function calls will occur.
+	 * @param nodes the nodes in which to set up call nodes
+	 * @param source the line from which the nodes were generated
+	 */
 	private static void setUpCalls(ArrayList<ParseTreeNode> nodes, SourceCode.Line source) {
 		for(int index = 0; index < nodes.size(); index++) {
 			ParseTreeNode callee = nodes.get(index);
@@ -203,6 +348,16 @@ public class Parser {
 		}
 	}
 	
+	/** 
+	 * Reduces a list of {@link ParseTreeNode}s into a single node. This is done by setting up the
+	 * operands to {@link OperatorNode} in the order of the operators' precedence. If after
+	 * reducing, the list of nodes have not been reduced to a single variable, then it will be
+	 * assumed that this is a list (either a list of parameters or an array) and the resulting list
+	 * will be wrapped in a {@link ListNode}, and that will be returned.
+	 * @param nodes the array of nodes to reduce
+	 * @param source the line from which the list of nodes was generated
+	 * @return a single node containing the tree built from the list of nodes
+	 */
 	private static ParseTreeNode reduce(ArrayList<ParseTreeNode> nodes, SourceCode.Line source,
 			Surround surround) {
 		while(nodes.size() > 1) {
@@ -212,9 +367,9 @@ public class Parser {
 			for(int index = 0; index < nodes.size(); index++) {
 				ParseTreeNode node = nodes.get(index);
 				if(node instanceof OperatorNode && !node.areOperandsSet()) {
-					if(node.precedence() > maxPrecedence) {
+					if(((OperatorNode) node).precedence() > maxPrecedence) {
 						maxOperator = node;
-						maxPrecedence = node.precedence();
+						maxPrecedence = ((OperatorNode) node).precedence();
 						maxOperatorIndex = index;
 					}
 				}
@@ -274,6 +429,18 @@ public class Parser {
 		return nodes.get(0);
 	}
 	
+	/**
+	 * Parses a token that is not an operator, and turns it into a {@link ParseTreeNode}. If the
+	 * token is a variable literal, then a {@link DataNode} containing that literal value is
+	 * returned. If the node is a language keyword, a {@link SyntaxException} is thrown. If none
+	 * of the above, then the token is assumed to be a variable name and will be wrapped in a
+	 * {@link ResolutionNode}. If it turns out this variable name does not exist, then at evaluation
+	 * an error will get thrown.
+	 * @param token the token to parse
+	 * @param interpreter the interpreter being used to parse this token
+	 * @param source the line from which this token was extracted 
+	 * @return a node that represents this token
+	 */
 	private static ParseTreeNode parseToken(Token token, Interpreter interpreter,
 			SourceCode.Line source) {
 		String phrase = token.getToken();
@@ -314,33 +481,5 @@ public class Parser {
 			throw new SyntaxException("Unexpected keyword '" + phrase + "'.", source);
 		}
 		return new ResolutionNode(interpreter, phrase, source);
-	}
-	
-	private static OperatorNode parseOperator(Token token, SourceCode.Line source) {
-		String symbol = token.getToken();
-		if(OperatorNode.isOperator(symbol)) {
-			return OperatorNode.instantiateOperator(symbol, source);
-		}
-		return null;
-	}
-	
-	public static boolean parensValid(ArrayList<Token> tokens, int startIndex, int endIndex) {
-		Stack<String> parens = new Stack<String>();
-		for(int index = startIndex; index <= endIndex; index++) {
-			String token = tokens.get(index).getToken();
-			if(token.equals("(")) {
-				parens.push(")");
-			}
-			if(token.equals("[")) {
-				parens.push("]");
-			}
-			if(token.equals(")") || token.equals("]")) {
-				if(parens.isEmpty())
-					return false;
-				if(!parens.pop().equals(token))
-					return false;
-			}
-		}
-		return parens.isEmpty();
 	}
 }

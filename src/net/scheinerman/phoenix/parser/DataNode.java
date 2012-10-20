@@ -21,29 +21,46 @@ package net.scheinerman.phoenix.parser;
 import net.scheinerman.phoenix.interpreter.*;
 import net.scheinerman.phoenix.variables.*;
 
+/**
+ * A node which wraps a {@link Variable}. The result of any operation on a {@link ParseTreeNode}
+ * should be a DataNode holding the Phoenix variable result of the operation.
+ *
+ * @author Jonah Scheinerman
+ */
 public class DataNode extends ParseTreeNode {
 
+	/** The value being wrapped. */
 	private Variable value;
 	
+	/**
+	 * Creates a new data node with the given variable value and the source line.
+	 * @param value the variable to wrap in this node
+	 * @param source the line from which this node was generated
+	 */
 	public DataNode(Variable value, SourceCode.Line source) {
 		super(ParseTreeNode.Type.NONARY, source);
 		this.value = value;
 	}
-	
-	@Override
-	public int precedence() {
-		return -1;
-	}
 
+	/**
+	 * Implemented to simply return this node.
+	 * @param left the left-hand subtree operand
+	 * @param right the right-hand subtree operand
+	 * @return this
+	 */
 	@Override
 	protected DataNode operate(ParseTreeNode left, ParseTreeNode right) {
 		return this;
 	}
 	
+	/**
+	 * Returns the variable value being held in this node.
+	 * @return the variable value of this node
+	 */
 	public Variable getValue() {
 		return value;
 	}
-	
+
 	public String toString() {
 		return value.toString();
 	}

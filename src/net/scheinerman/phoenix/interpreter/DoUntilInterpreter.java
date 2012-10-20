@@ -22,13 +22,26 @@ import java.util.*;
 
 import net.scheinerman.phoenix.parser.Tokenizer.Token;
 
+/**
+ * Interprets and executes a do-until loop. A do-until loop is a loop that waits for the predicate
+ * to become true, and does not check the predicate at the beginning. This loop cannot have an
+ * otherwise block.
+ *
+ * @author Jonah Scheinerman
+ */
 public class DoUntilInterpreter extends LoopInterpreter {
-
-	public DoUntilInterpreter(Interpreter parent, SourceCode source, int start, int end,
-			SourceCode.Line predicateLine, String predicate) {
-		super(parent, source, start, end, predicateLine, predicate, false, true);
-	}
 	
+	/**
+	 * Creates a new do-until loop interpreter.
+	 * @param parent the interpreter that is instantiating and running this interpreter
+	 * @param source the source code that is being interpreted
+	 * @param start the line on which to start interpreting
+	 * @param end the last line to interpret (the line at this index will be interpreted)
+	 * @param predicateLine the line containing the loop predicate
+	 * @param predicateTokens the tokenization of the predicate
+	 * @param predicateStartToken the starting index of the predicate in the tokenization
+	 * @param predicateEndToken the ending index of the predicate in the tokenization (inclusive)
+	 */
 	public DoUntilInterpreter(Interpreter parent, SourceCode source, int start, int end,
 			SourceCode.Line predicateLine, ArrayList<Token> predicateTokens,
 			int predicateStartToken, int predicateEndToken) {

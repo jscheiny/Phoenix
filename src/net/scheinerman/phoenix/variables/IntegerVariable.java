@@ -137,7 +137,7 @@ public class IntegerVariable extends Variable {
 		if(x instanceof IntegerVariable) {
 			return new IntegerVariable((int)Math.pow(value, ((IntegerVariable)x).getValue()));
 		} else if(x instanceof DoubleVariable) {
-			return new DoubleVariable(Math.pow(value, ((IntegerVariable)x).getValue()));
+			return new DoubleVariable(Math.pow(value, ((DoubleVariable)x).getValue()));
 		} else if(x instanceof LongVariable) {
 			return new LongVariable((long)Math.pow(value, ((LongVariable)x).getValue()));
 		}

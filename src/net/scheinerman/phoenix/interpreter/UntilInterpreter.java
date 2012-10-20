@@ -22,22 +22,29 @@ import java.util.*;
 
 import net.scheinerman.phoenix.parser.Tokenizer.*;
 
+/**
+ * Interprets and executes an until loop. An until loop is a loop that waits for the predicate to
+ * become true, and checks the predicate at the beginning.
+ *
+ * @author Jonah Scheinerman
+ */
 public class UntilInterpreter extends LoopInterpreter {
 
+	/**
+	 * Creates a new until loop interpreter.
+	 * @param parent the interpreter that is instantiating and running this interpreter
+	 * @param source the source code that is being interpreted
+	 * @param start the line on which to start interpreting
+	 * @param end the last line to interpret (the line at this index will be interpreted)
+	 * @param predicateTokens the tokenization of the predicate
+	 * @param predicateStartToken the starting index of the predicate in the tokenization
+	 * @param predicateEndToken the ending index of the predicate in the tokenization (inclusive)
+	 * @param otherwise the interpreter for executing the otherwise block (null if there is none)
+	 */
 	public UntilInterpreter(Interpreter parent, SourceCode source, int start, int end,
-			String predicate) {
-		this(parent, source, start, end, predicate, null);
-	}
-
-	public UntilInterpreter(Interpreter parent, SourceCode source, int start, int end,
-			String predicate, OtherwiseInterpreter otherwise) {
-		super(parent, source, start, end, source.line(start - 1), predicate, true, true, otherwise);
-	}
-
-	public UntilInterpreter(Interpreter parent, SourceCode source, int start, int end,
-			ArrayList<Token> predicateTokens, int predicateTokenStart, int predicateTokenEnd,
+			ArrayList<Token> predicateTokens, int predicateStartToken, int predicateEndToken,
 			OtherwiseInterpreter otherwise) {
 		super(parent, source, start, end, source.line(start - 1), predicateTokens,
-			  predicateTokenStart, predicateTokenEnd, true, true, otherwise);
+				predicateStartToken, predicateEndToken, true, true, otherwise);
 	}
 }

@@ -75,7 +75,10 @@ public class Interpreter {
 		public static final String TUPLE = "tuple";
 		public static final String TYPE = "type";
 		public static final String VOID = "void";
-		
+		public static final String AND = "and";
+		public static final String OR = "or";
+		public static final String NOT = "not";
+
 		/** Contains all named types. */
 		public static final HashSet<String> TYPES = new HashSet<String>();
 
@@ -90,6 +93,9 @@ public class Interpreter {
 			KEYWORDS.add(TRUE);
 			KEYWORDS.add(FALSE);
 			KEYWORDS.add(VOID);
+			KEYWORDS.add(AND);
+			KEYWORDS.add(OR);
+			KEYWORDS.add(NOT);
 
 			TYPES.add(INTEGER);
 			TYPES.add(DOUBLE);
@@ -255,7 +261,7 @@ public class Interpreter {
 	private EndCondition endCondition = EndCondition.NORMAL;
 	
 	/** The line on which this interpretation ended, if the ending was abnormal. */
-	protected SourceCode.Line endConditionLine = null;
+	protected Line endConditionLine = null;
 	
 	/** 
 	 * If a return statement with a value was called in this interpretation, the value given in that
@@ -350,7 +356,7 @@ public class Interpreter {
 	 * then the line on which the interpreter ended. Otherwise, returns <code>null</code>.
 	 * @return the line on which the interpreter ended its interpretation abnormally
 	 */
-	public final SourceCode.Line getEndConditionLine() {
+	public final Line getEndConditionLine() {
 		return endConditionLine;
 	}
 	
@@ -390,7 +396,10 @@ public class Interpreter {
 
 		try {			
 			for(int index = start; index <= end; index++) {
-				SourceCode.Line line = source.line(index);
+				Line line = source.line(index);
+				if(line.isEmpty())
+					continue;
+
 				Statement statement = line.getStatement();
 
 				// If the current line is indented more than the previous line, and we are not at
@@ -439,7 +448,7 @@ public class Interpreter {
 	 * @param line the line to be setup for execution
 	 * @param index the index of the line
 	 */
-	private void setupUndefinedStatement(SourceCode.Line line, int index) {
+	private void setupUndefinedStatement(Line line, int index) {
 		ArrayList<Token> tokenization = line.tokenize();
 		String content = line.getLineContent();
 
@@ -510,7 +519,7 @@ public class Interpreter {
 	 * @param index the index of the line
 	 * @return the index of the line the execution should continue on
 	 */
-	private int handleDefinedStatement(SourceCode.Line line, int index) {
+	private int handleDefinedStatement(Line line, int index) {
 		if(line.getSetupException() != null) {
 			throw line.getSetupException();
 		}
@@ -698,9 +707,15 @@ public class Interpreter {
 			   tokens.get(0).getToken().equals(Statement.PRINT.getKeyword());
 	}
 	
-	public void setupTry(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	/**
+	 * Sets up a line that contains a try statement for execution.
+	 * @param tokens the tokenization of the try statement line
+	 * @param line the line containing the try statement
+	 * @param index the index of the line
+	 */
+	public void setupTry(ArrayList<Token> tokens, Line line, int index) {
 		int tryEnd = source.getBlockEnd(index);
-		SourceCode.Line tryEndLine = source.line(tryEnd + 1);
+		Line tryEndLine = source.line(tryEnd + 1);
 		ArrayList<Token> tryEndTokens = Tokenizer.tokenize(tryEndLine.getLineContent(),
 				tryEndLine);
 		
@@ -721,15 +736,12 @@ public class Interpreter {
 	}
 	
 	/**
-	 * Handles an if block. This checks to make sure the if statement is valid, collects any
-	 * else-if/else blocks that are associated with them and interprets them using an
-	 * {@link IfExecutor}. This then returns the line number on which the execution finished.
-	 * @param tokens the tokenization of the line containing the if statement
-	 * @param line the source line containing the if statement
+	 * Sets up a line that contains a if statement for execution.
+	 * @param tokens the tokenization of the if statement line
+	 * @param line the line containing the if statement
 	 * @param index the index of the line
-	 * @return the line on which execution in this interpretation should continue
 	 */
-	private void setupIf(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupIf(ArrayList<Token> tokens, Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
 			throw new SyntaxException(Statement.IF.getKeyword() + " statements must end in a colon.", line);
 		}
@@ -740,7 +752,7 @@ public class Interpreter {
 		int currentLine = index;
 		
 		while(!done) {
-			SourceCode.Line current = source.line(currentLine);
+			Line current = source.line(currentLine);
 			String currentContent = current.getLineContent();
 			ArrayList<Token> lineTokenization;
 			int startToken = 1;
@@ -788,7 +800,12 @@ public class Interpreter {
 		line.setContinuationLineIndex(currentLine - 1);
 	}
 	
-	protected int handleIf(SourceCode.Line line) {
+	/**
+	 * Executes a line that has been preprocessed and contains an if statement.
+	 * @param line the line to execute
+	 * @return the line that should be next executed after this line
+	 */
+	protected int handleIf(Line line) {
 		IfExecutor ifExec = (IfExecutor)line.getData();
 		
 		EndCondition childEndCondition = ifExec.execute();
@@ -806,20 +823,14 @@ public class Interpreter {
 	}
 
 	/**
-	 * Handles a do loop. This checks to make sure the do statement is valid by looking for
-	 * a while or an until at the end of the block. This then calls either
-	 * {@link #handleDoUntil(ArrayList, net.scheinerman.phoenix.interpreter.SourceCode.Line, net.scheinerman.phoenix.interpreter.SourceCode.Line)}
-	 * or
-	 * {@link #handleDoWhile(ArrayList, net.scheinerman.phoenix.interpreter.SourceCode.Line, net.scheinerman.phoenix.interpreter.SourceCode.Line)}
-	 * as is appropriate. This then returns the line on which the execution of the loop finished.
-	 * @param tokens the tokenization of the line containing the do statement
-	 * @param line the source line containing the do statement
+	 * Sets up a line that contains a do statement for execution.
+	 * @param tokens the tokenization of the do statement line
+	 * @param line the line containing the do statement
 	 * @param index the index of the line
-	 * @return the line on which execution in this interpretation should continue
 	 */
-	private void setupDo(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupDo(ArrayList<Token> tokens, Line line, int index) {
 		int doEnd = source.getBlockEnd(index);
-		SourceCode.Line endLine = source.line(doEnd + 1);
+		Line endLine = source.line(doEnd + 1);
 		String endLineContent = endLine.getLineContent();
 		ArrayList<Token> endTokens = Tokenizer.tokenize(endLineContent, endLine);
 		// If the do loop ends with a while:
@@ -838,13 +849,14 @@ public class Interpreter {
 	}
 
 	/**
-	 * Handles a do-while loop. This creates and executes a {@link DoWhileInterpreter}.
+	 * Finishes set up of a do-while loop for the line containing the do statement.
 	 * @param whileTokens the tokens on the line containing the while statement
 	 * @param doLine the line containing the do statement
 	 * @param whileLine the line containing the while statement
+	 * @param resumeLine the line that should be executed after the loop ends
 	 */
-	private void setupDoWhile(ArrayList<Token> whileTokens, SourceCode.Line doLine,
-			SourceCode.Line whileLine, int resumeLine) {		
+	private void setupDoWhile(ArrayList<Token> whileTokens, Line doLine,
+			Line whileLine, int resumeLine) {		
 		DoWhileInterpreter doWhileInterpreter = new DoWhileInterpreter(this, source,
 				doLine.getNumber() + 1, whileLine.getNumber() - 1, whileLine, whileTokens, 1,
 				whileTokens.size() - 1);
@@ -855,13 +867,14 @@ public class Interpreter {
 	}
 
 	/**
-	 * Handles a do-until loop. This creates and executes a {@link DoUntilInterpreter}.
-	 * @param whileTokens the tokens on the line containing the while statement
+	 * Finishes set up of a do-until loop for the line containing the do statement.
+	 * @param untilTokens the tokens on the line containing the until statement
 	 * @param doLine the line containing the do statement
-	 * @param whileLine the line containing the while statement
+	 * @param untilLine the line containing the while statement
+	 * @param resumeLine the line that should be executed after the loop ends
 	 */
-	private void setupDoUntil(ArrayList<Token> untilTokens, SourceCode.Line doLine,
-			SourceCode.Line untilLine, int resumeLine) {
+	private void setupDoUntil(ArrayList<Token> untilTokens, Line doLine,
+			Line untilLine, int resumeLine) {
 		DoUntilInterpreter doUntilInterpreter = new DoUntilInterpreter(this, source,
 				doLine.getNumber() + 1, untilLine.getNumber() - 1, untilLine, untilTokens, 1,
 				untilTokens.size() - 1);
@@ -872,15 +885,12 @@ public class Interpreter {
 	}
 	
 	/**
-	 * Handles a for loop. This checks to make sure the for statement is correctly formulated, and
-	 * then executes a ForInterpreter. This then returns the line on which execution of the for loop
-	 * finished.
+	 * Sets up a line that contains a for statement for execution.
 	 * @param tokens the tokenization of the line containing the for statement
 	 * @param line the source line containing the for statement
 	 * @param index the index of the line
-	 * @return the line on which execution in this interpretation should continue
 	 */
-	private void setupFor(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupFor(ArrayList<Token> tokens, Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
 			throw new SyntaxException(Statement.FOR + " statements must end in a colon.", line);
 		}
@@ -902,7 +912,7 @@ public class Interpreter {
 		
 		int forEnd = source.getBlockEnd(index);
 		int interpetationContineLine = forEnd;
-		SourceCode.Line forEndLine = source.line(forEnd + 1);
+		Line forEndLine = source.line(forEnd + 1);
 		ArrayList<Token> forEndTokens = Tokenizer.tokenize(forEndLine.getLineContent(),
 				forEndLine);
 		OtherwiseInterpreter otherwise = null;
@@ -922,22 +932,19 @@ public class Interpreter {
 	}
 
 	/**
-	 * Handles a while loop. This checks to make sure the while statement is correctly formulated,
-	 * and then executes a {@link WhileInterpreter}. This then returns the line on which execution
-	 * of the for loop finished.
+	 * Sets up a line that contains a while statement for execution.
 	 * @param tokens the tokenization of the line containing the while statement
 	 * @param line the source line containing the while statement
 	 * @param index the index of the line
-	 * @return the line on which execution in this interpretation should continue
 	 */
-	private void setupWhile(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupWhile(ArrayList<Token> tokens, Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
 			throw new SyntaxException(Statement.WHILE + " statements must end in a colon.", line);
 		}
 
 		int whileEnd = source.getBlockEnd(index);
 		int interpetationContineLine = whileEnd;
-		SourceCode.Line whileEndLine = source.line(whileEnd + 1);
+		Line whileEndLine = source.line(whileEnd + 1);
 		ArrayList<Token> whileEndTokens = Tokenizer.tokenize(whileEndLine.getLineContent(),
 			whileEndLine);
 		OtherwiseInterpreter otherwise = null;
@@ -957,22 +964,19 @@ public class Interpreter {
 	}
 
 	/**
-	 * Handles an until loop. This checks to make sure the until statement is correctly formulated,
-	 * and then executes an {@link UntilInterpreter}. This then returns the line on which execution
-	 * of the for loop finished.
+	 * Sets up a line that contains an until statement for execution.
 	 * @param tokens the tokenization of the line containing the until statement
 	 * @param line the source line containing the until statement
 	 * @param index the index of the line
-	 * @return the line on which execution in this interpretation should continue
 	 */
-	private void setupUntil(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	private void setupUntil(ArrayList<Token> tokens, Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
 			throw new SyntaxException(Statement.UNTIL + " statements must end in a colon.", line);
 		}
 	
 		int untilEnd = source.getBlockEnd(index);
 		int interpetationContineLine = untilEnd;
-		SourceCode.Line untilEndLine = source.line(untilEnd + 1);
+		Line untilEndLine = source.line(untilEnd + 1);
 		ArrayList<Token> untilEndTokens = Tokenizer.tokenize(untilEndLine.getLineContent(),
 				untilEndLine);
 		OtherwiseInterpreter otherwise = null;
@@ -991,31 +995,57 @@ public class Interpreter {
 		line.setContinuationLineIndex(interpetationContineLine);
 	}
 	
-	private void setupBreak(SourceCode.Line line, int index) {
+	/**
+	 * Sets up a line that contains a break statement for execution.
+	 * @param line the source line containing the break statement
+	 * @param index the index of the line
+	 */
+	private void setupBreak(Line line, int index) {
 		line.setStatment(Statement.BREAK);
 		line.setContinuationLineIndex(getEndLine());
 	}
-	
-	protected int handleBreak(SourceCode.Line line) {
+
+	/**
+	 * Executes a line that has been preprocessed and contains a break statement.
+	 * @param line the line to execute
+	 * @return the line that should be next executed after this line
+	 */
+	protected int handleBreak(Line line) {
 		endCondition = EndCondition.BREAK;
 		endConditionLine = line;
 		
 		return getEndLine();
 	}
 	
-	private void setupContinue(SourceCode.Line line, int index) {
+	/**
+	 * Sets up a line that contains a continue statement for execution.
+	 * @param line the source line containing the continue statement
+	 * @param index the index of the line
+	 */
+	private void setupContinue(Line line, int index) {
 		line.setStatment(Statement.CONTINUE);
 		line.setContinuationLineIndex(getEndLine());
 	}
 
-	protected int handleContinue(SourceCode.Line line) {
+	/**
+	 * Executes a line that has been preprocessed and contains a continue statement.
+	 * @param line the line to execute
+	 * @return the line that should be next executed after this line
+	 */
+	protected int handleContinue(Line line) {
 		endCondition = EndCondition.CONTINUE;
 		endConditionLine = line;
 		
 		return getEndLine();
 	}
 	
-	private void setupReturn(ArrayList<Token> tokens, SourceCode.Line line, int index) {
+	/**
+	 * Sets up a line that contains a return statement for execution.
+	 * @param tokens the tokenization of the line containing the return statement
+	 * @param line the source line containing the break statement
+	 * @param index the index of the line
+	 */
+	private void setupReturn(ArrayList<Token> tokens, Line line, int index) {
 		line.setStatment(Statement.RETURN);
 		line.setContinuationLineIndex(getEndLine());
 		
@@ -1026,7 +1056,12 @@ public class Interpreter {
 		}
 	}
 	
-	protected int handleReturn(SourceCode.Line line) {
+	/**
+	 * Executes a line that has been preprocessed and contains a return statement.
+	 * @param line the line to execute
+	 * @return the line that should be next executed after this line
+	 */
+	protected int handleReturn(Line line) {
 		endCondition = EndCondition.RETURN;
 		endConditionLine = line;		
 		if(line.getData() != null) {
@@ -1038,7 +1073,13 @@ public class Interpreter {
 		return getEndLine();
 	}
 	
-	protected void setupFunctionDeclaration(ArrayList<Token> tokens, SourceCode.Line line,
+	/**
+	 * Sets up a line that contains a function declaration for execution.
+	 * @param tokens the tokenization of the line containing the function declaration
+	 * @param line the source line containing the function declaration
+	 * @param index the index of the line
+	 */
+	protected void setupFunctionDeclaration(ArrayList<Token> tokens, Line line,
 			int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
 			throw new SyntaxException("Function declarations must end in a colon.", line);
@@ -1117,7 +1158,12 @@ public class Interpreter {
 		line.setData(new Pair<String, Variable>(name, functionVariable));
 	}
 	
-	protected int handleFunctionDeclaration(SourceCode.Line line) {
+	/**
+	 * Executes a line that has been preprocessed and contains a function declaration.
+	 * @param line the line to execute
+	 * @return the line that should be next executed after this line
+	 */
+	protected int handleFunctionDeclaration(Line line) {
 		@SuppressWarnings("unchecked")
 		Pair<String, Variable> pair = (Pair<String, Variable>)line.getData();
 		if(topLevel) {
@@ -1129,8 +1175,17 @@ public class Interpreter {
 		return line.getContinuationLineIndex();
 	}
 	
+	/**
+	 * Parses a list of tokens that represent a function argument list an returns that argument
+	 * list as a ordered list of type-name pairings.
+	 * @param tokens the tokenization of the argument list
+	 * @param start the starting token of the arguments
+	 * @param end the ending token of the arguments (non-inclusive)
+	 * @param line the line containing the argument list
+	 * @return an ordered list of type-name pairings based on the argument list
+	 */
 	private ArrayList<Pair<String, String>> getArgumentList(ArrayList<Token> tokens, int start,
-			int end, SourceCode.Line line) {
+			int end, Line line) {
 		ArrayList<Pair<String, String>> arguments = new ArrayList<Pair<String, String>>();
 		for(int index = start; index < end; index++) {
 			ArrayList<Token> typeTokens = getTypeName(tokens, index);
@@ -1154,7 +1209,13 @@ public class Interpreter {
 		return arguments;
 	}
 	
-	private void setupInitialization(ArrayList<Token> tokens, SourceCode.Line line) {
+	/**
+	 * Sets up a line that contains a variable initialization for execution.
+	 * @param tokens the tokenization of the line containing the variable initialization
+	 * @param line the source line containing the variable initialization
+	 * @param index the index of the line
+	 */
+	private void setupInitialization(ArrayList<Token> tokens, Line line) {
 		ArrayList<Token> typeTokens = getTypeName(tokens, 0);
 		String type = concatenate(typeTokens);
 		String name = tokens.get(typeTokens.size()).getToken();
@@ -1166,7 +1227,12 @@ public class Interpreter {
 		line.setData(new Object[] {type, name, tree});
 	}
 	
-	protected void handleInitialization(SourceCode.Line line) {
+	/**
+	 * Executes a line that has been preprocessed and contains a variable initialization.
+	 * @param line the line to execute
+	 * @return the line that should be next executed after this line
+	 */
+	protected void handleInitialization(Line line) {
 		Object[] storedValues = (Object[])line.getData();
 		String type = (String)storedValues[0];
 		String name = (String)storedValues[1];		
@@ -1175,7 +1241,14 @@ public class Interpreter {
 		doInitialization(type, name, value, line);
 	}
 	
-	protected void doInitialization(String type, String name, Variable value, SourceCode.Line line) {
+	/**
+	 * Creates a new variable with the given type, name, and value in the local scope.
+	 * @param type the type name of the variable
+	 * @param name the name of the variable
+	 * @param value the value of the variable
+	 * @param line the line containing the initialization
+	 */
+	protected void doInitialization(String type, String name, Variable value, Line line) {
 		Variable store = null;
 		if(type.equals(Strings.BOOLEAN)) {
 			store = new BooleanVariable();
@@ -1209,6 +1282,11 @@ public class Interpreter {
 		}
 	}
 	
+	/**
+	 * Sets up a line that contains an print statement for execution.
+	 * @param tokens the tokenization of the line containing the print statement
+	 * @param line the source line containing the print statement
+	 */
 	private void setupPrint(ArrayList<Token> tokens, Line line) {
 		line.setStatment(Statement.PRINT);
 		if(tokens.size() == 1) {
@@ -1218,7 +1296,12 @@ public class Interpreter {
 		}
 	}
 	
-	protected void handlePrint(SourceCode.Line line) {
+	/**
+	 * Executes a line that has been preprocessed and contains a print statement.
+	 * @param line the line to execute
+	 * @return the line that should be next executed after this line
+	 */
+	protected void handlePrint(Line line) {
 		if(line.getData() == null) {
 			System.out.println();
 		} else {
@@ -1226,16 +1309,30 @@ public class Interpreter {
 		}
 	}
 	
-	
+	/**
+	 * Sets up a line that contains an phrase to parse for execution.
+	 * @param tokens the tokenization of the line containing the phrase
+	 * @param line the source line containing the phrase
+	 */
 	private void setupParse(ArrayList<Token> tokens, Line line) {
 		line.setStatment(Statement.PARSE);
 		line.setData(Parser.getParseTree(this, line, tokens));
 	}
 	
-	protected void handleParse(SourceCode.Line line) {
+	/**
+	 * Executes a line that has been preprocessed and contains a phrase to be parsed.
+	 * @param line the line to execute
+	 * @return the line that should be next executed after this line
+	 */
+	protected void handleParse(Line line) {
 		((ParseTreeNode)line.getData()).operate().getValue();
 	}
 	
+	/**
+	 * Handles the end condition of this intepreter. This interpreter is implemented to throw errors
+	 * if it is a top level intepreter and the end condition is not normal.
+	 * @param endCondition the end condition of this interpreter
+	 */
 	protected void handleEndCondition(EndCondition endCondition) {
 		if(endCondition == EndCondition.NORMAL)
 			return;
@@ -1254,6 +1351,14 @@ public class Interpreter {
 		}
 	}	
 	
+	/**
+	 * Executes the interpretation of a child interpreter. This involves setting up the VAT for the
+	 * child intepreter, running the interpreter, then handling the end condition of the child
+	 * interpretation.
+	 * @param child the child interpreter to execute
+	 * @param resumeLine the line on which execution should continue under a normal end condition
+	 * @return the line on which execution should continue
+	 */
 	private int runChildInterpretation(Interpreter child, int resumeLine) {
 		child.setVAT(getVAT());
 
@@ -1271,6 +1376,36 @@ public class Interpreter {
 		return getEndLine();
 	}
 	
+	/**
+	 * Checks if the given name is valid. A valid name cannot be an already used name, cannot be a
+	 * keyword, and must start with a letter or underscore and then consist of only letters, digits,
+	 * and underscores. If it is valid, then nothing happens. If the name is not valid, then an
+	 * appropriate {@link SyntaxException} will be thrown. Functions are variables and their names
+	 * must be checked using this method.
+	 * @param name the name of the variable to check if valid
+	 * @param line the line containing the initialization of the variable
+	 */
+	protected void isNameValid(String name, Line line) {
+		if(!VALID_NAME.matcher(name).matches()) {
+			throw new SyntaxException("Illegal variable name '" + name + "'.", line);
+		}
+		if(Interpreter.KEYWORDS.contains(name)) {
+			throw new SyntaxException("Variable name cannot be keyword '" + name + "'.", line);
+		}
+		if(vat.hasVariable(name)) {
+			throw new SyntaxException("Variable name '" + name + "' already in use.", line);
+		}
+	}
+	
+	/**
+	 * If the list of tokens contains a type name starting at the start token, this will return
+	 * that type name. This is particularly useful, becuase it will pull out the type name even
+	 * if it is an array type. If there is no type name at the given starting index, a null value
+	 * is returned.
+	 * @param tokens the tokenization of the line containing the possible type name
+	 * @param start the token at which the type name is thought to occur
+	 * @return the tokens of the type name, or null if there is no type name at the start index
+	 */
 	protected static ArrayList<Token> getTypeName(ArrayList<Token> tokens, int start) {
 		if(tokens.size() <= start)
 			return null;
@@ -1320,23 +1455,16 @@ public class Interpreter {
 		return typeTokens;
 	}
 	
+	/**
+	 * Concatenates a set of tokens together into a single string with no delimiter.
+	 * @param tokens the tokens to concatenate together
+	 * @return the concatenated string of tokens
+	 */
 	protected static String concatenate(ArrayList<Token> tokens) {
 		String ret = "";
 		for(Token token : tokens) {
 			ret += token.getToken();
 		}
 		return ret;
-	}
-	
-	protected void isNameValid(String name, SourceCode.Line line) {
-		if(!VALID_NAME.matcher(name).matches()) {
-			throw new SyntaxException("Illegal variable name '" + name + "'.", line);
-		}
-		if(Interpreter.KEYWORDS.contains(name)) {
-			throw new SyntaxException("Variable name cannot be keyword '" + name + "'.", line);
-		}
-		if(vat.hasVariable(name)) {
-			throw new SyntaxException("Variable name '" + name + "' already in use.", line);
-		}
 	}
 }
