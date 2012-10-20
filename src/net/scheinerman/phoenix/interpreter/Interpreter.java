@@ -141,6 +141,7 @@ public class Interpreter {
 		TRY("try", StatementType.SUBINTERPRETATION),
 		/** Catch block which is empty as this should never be found by itself. */
 		CATCH("catch", StatementType.EMPTY),
+		/** If/else if/else block execution. */
 		IF("if", StatementType.OTHER),
 		/** Else block which is empty as this should never be found by itself. */
 		ELSE("else", StatementType.EMPTY),
@@ -303,7 +304,6 @@ public class Interpreter {
 	 * @param source the source code from which the interpreted code will be taken
 	 * @param start the index of the start line for interpretation
 	 * @param end the index of the last line for interpretation (this line will be interpreted)
-	 * @param loopChild whether this is a descendant of a loop interpreter
 	 */
 	public Interpreter(Interpreter parent, SourceCode source, int start, int end) {
 		this.parent = parent;
@@ -1269,6 +1269,8 @@ public class Interpreter {
 		try {
 			store.assign(value);
 		} catch(UnsupportedOperatorException e) {
+			e.setMessage("Variable of type " + type + " cannot be assigned a value with type " +
+				value.getTypeName());
 			e.setSourceLine(line);
 			throw e;
 		}

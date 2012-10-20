@@ -190,13 +190,16 @@ public class Parser {
 	private static final Pattern INTEGER_LITERAL = Pattern.compile("\\d+");
 
 	/** First of the patterns that matches double literals. */
-	private static final Pattern DOUBLE_LITERAL_1 = Pattern.compile("\\d+d");
+	private static final Pattern DOUBLE_LITERAL_1 = Pattern.compile("\\d+[dD]");
 
 	/** Second of the patterns that matches double literals. */
-	private static final Pattern DOUBLE_LITERAL_2 = Pattern.compile("\\.\\d+d?");
+	private static final Pattern DOUBLE_LITERAL_2 = Pattern.compile("\\.\\d+[dD]?");
 
 	/** Third of the patterns that matches double literals. */
-	private static final Pattern DOUBLE_LITERAL_3 = Pattern.compile("\\d+\\.\\d*d?");
+	private static final Pattern DOUBLE_LITERAL_3 = Pattern.compile("\\d+\\.\\d*[dD]?");
+	
+	/** A pattern that matches long literals. */
+	private static final Pattern LONG_LITERAL = Pattern.compile("\\d+[lL]");
 
 	/**
 	 * Parses and builds a parse tree for a given expression. This is a recursive helper method that
@@ -456,8 +459,19 @@ public class Parser {
 		}
 		// Parse integral literal...
 		if(INTEGER_LITERAL.matcher(phrase).matches()) {
-			IntegerVariable var = new IntegerVariable(Integer.parseInt(phrase));
-			var.setLiteral(true);
+			long value = Long.parseLong(phrase);
+			Variable var;
+			if(value > Integer.MAX_VALUE || value < Integer.MIN_VALUE) {
+				var = new LongVariable((long)value);
+			} else {
+				var = new IntegerVariable((int)value);
+			}
+			return new DataNode(var, source);
+		}
+		// Parse long literal...
+		if(LONG_LITERAL.matcher(phrase).matches()) {
+			LongVariable var = new LongVariable(Long.parseLong(phrase.substring(0,
+				phrase.length() - 1)));
 			return new DataNode(var, source);
 		}
 		// Parse double literal...

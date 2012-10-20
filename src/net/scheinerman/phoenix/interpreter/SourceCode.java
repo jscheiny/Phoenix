@@ -308,7 +308,7 @@ public class SourceCode {
 	/**
 	 * Creates a new source code object from a file at a given path.
 	 * @param path the path of the file to read from
-	 * @throw FileNotFoundException if the file at the path cannot be found or read from
+	 * @throws FileNotFoundException if the file at the path cannot be found or read from
 	 */
 	public SourceCode(String path) throws FileNotFoundException {
 		this(new File(path));
@@ -317,7 +317,7 @@ public class SourceCode {
 	/**
 	 * Creates a new source code object from a given file.
 	 * @param file the file from which to read the source code
-	 * @throw FileNotFoundException if the file at the path cannot be found or read from
+	 * @throws FileNotFoundException if the file at the path cannot be found or read from
 	 */
 	public SourceCode(File file) throws FileNotFoundException {
 		this.file = file;

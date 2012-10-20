@@ -87,8 +87,8 @@ public abstract class ParseTreeNode {
 	
 	/**
 	 * Returns the left subtree of this node. If no left subtree has been set, returns
-	 * <code>null</code>
-	 * @param the left subtree of this node
+	 * <code>null</code>.
+	 * @return the left subtree of this node
 	 */
 	public final ParseTreeNode left() {
 		return left;
@@ -100,7 +100,7 @@ public abstract class ParseTreeNode {
 	 * the left subtree will be updated. Otherwise, the value remains null.
 	 * @param left the new left subtree for this node
 	 */
-	public final void setLeft(ParseTreeNode left) {
+	public void setLeft(ParseTreeNode left) {
 		if(operationType != Type.PREFIX_UNARY && operationType != Type.NONARY) {
 			this.left = left;
 		}
@@ -108,8 +108,8 @@ public abstract class ParseTreeNode {
 
 	/**
 	 * Returns the right subtree of this node. If no right subtree has been set, returns
-	 * <code>null</code>
-	 * @param the right subtree of this node
+	 * <code>null</code>.
+	 * return the right subtree of this node
 	 */
 	public final ParseTreeNode right() {
 		return right;
@@ -121,7 +121,7 @@ public abstract class ParseTreeNode {
 	 * the right subtree will be updated. Otherwise, the value remains null.
 	 * @param right the new right subtree for this node
 	 */
-	public final void setRight(ParseTreeNode right) {
+	public void setRight(ParseTreeNode right) {
 		if(operationType != Type.POSTFIX_UNARY && operationType != Type.NONARY) { 
 			this.right = right;
 		}

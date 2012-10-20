@@ -34,7 +34,7 @@ public class UnsupportedOperatorException extends PhoenixRuntimeException {
 	 * Constructs a new unsupported operator error with no message. This is typically used by the
 	 * operator methods in {@link Variable} subclasses. This then gets caught by the parser which
 	 * rethrows a new error using the
-	 * {@link #UnsupportedOperatorException(String, Variable, Variable, Line)} constructor to pass
+	 * {@link UnsupportedOperatorException#UnsupportedOperatorException(String, Variable, Variable, Line)} constructor to pass
 	 * the correct values.
 	 */
 	public UnsupportedOperatorException() {

@@ -143,7 +143,10 @@ public class TypeVariable extends Variable {
 
 	@Override
 	public Variable call(Variable left, Variable right) {
-		throw new UnsupportedOperatorException();
+		if(left != null || right == null) {
+			throw new InvalidCallParametersException(this, left, right, null);
+		}
+		return new TypeVariable(right.getTypeName());
 	}
 
 	@Override

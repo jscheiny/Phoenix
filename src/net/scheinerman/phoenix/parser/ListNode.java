@@ -22,6 +22,7 @@ import java.util.*;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.parser.OperatorNode.*;
 import net.scheinerman.phoenix.variables.*;
 
 /**
@@ -40,10 +41,10 @@ public class ListNode extends ParseTreeNode {
 	/** 
 	 * Creates a new list node from the source line and a list of subtrees. This list of subtrees
 	 * must be comma separated. That is, every other element should be an instance of
-	 * {@link OperatorNode#ArgSeparator}. If this is not the case this throws a
+	 * {@link ArgSeparator}. If this is not the case this throws a
 	 * {@link SyntaxException}.
 	 * @param source the source line from which this node was generated
- 	 * @param node the comma separated subtrees
+ 	 * @param nodes the comma separated subtrees
  	 * @throws SyntaxException if the list of nodes is not comma separated
 	 */
 	public ListNode(SourceCode.Line source, ArrayList<ParseTreeNode> nodes) {

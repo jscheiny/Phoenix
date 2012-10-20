@@ -38,7 +38,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 	/**
 	 * Class containing static string constants for all of the operator symbols. The only operators
 	 * not included here are the logical and, or and not which are not symbols but keywords, and are
-	 * put in the {@link Interpreter#Strings} class.
+	 * put in the {@link Strings} class.
 	 *
 	 * @author Jonah Scheinerman
 	 */
@@ -158,6 +158,15 @@ public abstract class OperatorNode extends ParseTreeNode {
 	/** The symbol of this operator. */
 	private String symbol;
 	
+	/** Whether the value of this node has been autocomputed. */
+	private boolean autoComputed = false;
+	
+	/** If autocomputed, the value that was produced. */
+	private DataNode autoComputeValue = null;
+	
+	/** If an error was thrown during autocomputation, the error that was thrown. */
+	private PhoenixRuntimeException autoComputeError = null;
+	
 	/**
 	 * Constructs a new operator with a given type, symbol, and source line from which the node was
 	 * created.
@@ -184,6 +193,60 @@ public abstract class OperatorNode extends ParseTreeNode {
 	 */
 	public abstract int precedence();
 
+	@Override
+	public void setLeft(ParseTreeNode left) {
+		super.setLeft(left);
+		if(areOperandsSet())
+			autoCompute();
+	}
+	
+	@Override
+	public void setRight(ParseTreeNode right) {
+		super.setRight(right);
+		if(areOperandsSet())
+			autoCompute();
+	}
+	
+	/**
+	 * Returns whether this subtree consists of only literal values. Such a tree can either be null,
+	 * be a data node (thus contains a literal value) or can be an operator that has been
+	 * autocomputed already. This is used to determine if this node can be autocomputed.
+	 * @param node the node to check if a literal subtree
+	 * @return true if the node represents a literal subtree
+	 */
+	private static boolean isLiteralSubtree(ParseTreeNode node) {
+		return node == null ||
+			   node instanceof DataNode ||
+			   (node instanceof OperatorNode && ((OperatorNode) node).isAutoComputed());
+	}
+	
+	/**
+	 * If both the left and right subtrees of this node are literal subtrees then autocomputes the
+	 * value of this node. Thus any time later when this tree is executed, the value will not have
+	 * to be computed. This reduces literal expressions to their values at interpretation so that
+	 * any time that phrase is executed in the future, literal expressions don't have to be
+	 * recomputed. Auto-computation occurs automatically when the operands to this node have been
+	 * set.
+	 */
+	private void autoCompute() {
+		if(isLiteralSubtree(left()) && isLiteralSubtree(right())) {
+			try {
+				autoComputeValue = operate(left(), right());
+			} catch(PhoenixRuntimeException e) {
+				autoComputeError = e;
+			}	
+			autoComputed = true;
+		}
+	}
+	
+	/**
+	 * Returns whether the value of this node has been auto-computed.
+	 * @return whether the value of this node has been auto-computed
+	 */
+	public boolean isAutoComputed() {
+		return autoComputed;
+	}
+	
 	/**
 	 * Performs the operation for this node, and returns the result as a {@link DataNode}.
 	 * @param left the left-hand subtree operand
@@ -192,6 +255,14 @@ public abstract class OperatorNode extends ParseTreeNode {
 	 */
 	@Override
 	protected DataNode operate(ParseTreeNode left, ParseTreeNode right) {
+		if(autoComputed) {
+			if(autoComputeError != null) {
+				throw autoComputeError;
+			}
+			
+			return autoComputeValue;
+		}
+		
 		Variable leftValue = null, rightValue = null;
 		if(getOperationType() == Type.BINARY || getOperationType() == Type.PREFIX_UNARY) {
 			rightValue = right.operate().getValue();
