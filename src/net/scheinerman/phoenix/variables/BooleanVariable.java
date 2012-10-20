@@ -156,7 +156,7 @@ public class BooleanVariable extends Variable {
 	}
 
 	@Override
-	public Variable copy() {
+	public Variable passValue() {
 		return new BooleanVariable(value);
 	}
 	

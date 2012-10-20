@@ -63,8 +63,8 @@ public class CallNode extends ParseTreeNode {
 	protected DataNode operate(ParseTreeNode left, ParseTreeNode right) {
 		Variable calleeValue = callee.operate().getValue();
 		try {
-			Variable leftValue = (left == null ? null : left.operate().getValue());
-			Variable rightValue = (right == null ? null : right.operate().getValue());
+			Variable leftValue = (left == null ? null : left.operate().getValue().passValue());
+			Variable rightValue = (right == null ? null : right.operate().getValue().passValue());
 			
 			return new DataNode(calleeValue.call(leftValue, rightValue), getSourceLine());
 			

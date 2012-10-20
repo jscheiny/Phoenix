@@ -103,11 +103,13 @@ public abstract class Variable {
 	public abstract String stringValue();
 	
 	/**
-	 * Returns an literal copy of this variable. Used for function calls for variables that pass by
-	 * value rather than reference. This must be supported.
+	 * Returns the version of this variable that should be passed through function parameters. This
+	 * should be implemented to make a variable either pass by value or pass by reference. If the
+	 * variable is passed by value, then this method should return a copy of the variable. If this
+	 * variable is passed by reference, then this method should just return <code>this</code>.
 	 * @return a copy of this variable
 	 */
-	public abstract Variable copy();
+	public abstract Variable passValue();
 
 	/**
 	 * Performs the assignment operation (=) for this variable.

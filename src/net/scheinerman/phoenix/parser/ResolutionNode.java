@@ -21,6 +21,8 @@ package net.scheinerman.phoenix.parser;
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
 import net.scheinerman.phoenix.interpreter.SourceCode.Line;
+import net.scheinerman.phoenix.parser.OperatorNode.FunctionReference;
+import net.scheinerman.phoenix.variables.*;
 
 /**
  * A node which wraps a variable name, that is resolved to a variable value only when the tree is
@@ -36,7 +38,10 @@ public class ResolutionNode extends ParseTreeNode {
 
 	/** The name of the variable to be resolved. */
 	private String name;
-	
+
+	/** Whether this resolution node has been wrapped in a function reference. */
+	private boolean referenced = false;
+
 	/**
 	 * Creates a new resolution node with the interpreter, variable name, and the source code line.
 	 * @param interpreter the interpreter which is used to look up the variable
@@ -60,11 +65,28 @@ public class ResolutionNode extends ParseTreeNode {
 	@Override
 	protected DataNode operate(ParseTreeNode left, ParseTreeNode right) {
 		if(interpreter.getVAT().hasVariable(name)) {
-			return new DataNode(interpreter.getVAT().getVariable(name), getSourceLine());
+			Variable var = interpreter.getVAT().getVariable(name);
+			if(!referenced && var instanceof FunctionVariable) {
+				return new CallNode(new DataNode(var, getSourceLine()),
+									Type.NONARY, getSourceLine()).operate();
+			}
+			return new DataNode(var, getSourceLine());
 		}
 		throw new SyntaxException("Unexpected symbol '" + name + "'", getSourceLine());
 	}
 
+	/**
+	 * Sets whether this node has been enclosed in a {@link FunctionReference} or in a
+	 * {@link CallNode}. If this node has been, then this node will simply return the resolution of
+	 * its name value. If however, this node has not been referenced and if the resolution of the
+	 * variable's name is a function, then this makes the call to that function with no parameters.
+	 * @param referenced whether this node has been referenced by a {@link FunctionReference} or a
+	 * {@link CallNode}.
+	 */
+	public void setReferenced(boolean referenced) {
+		this.referenced = referenced;
+	}
+	
 	@Override
 	public String toString() {
 		return "res[" + name + "]";

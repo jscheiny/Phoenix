@@ -237,7 +237,7 @@ public class DoubleVariable extends Variable {
 	}
 
 	@Override
-	public Variable copy() {
+	public Variable passValue() {
 		return new DoubleVariable(value);
 	}
 	

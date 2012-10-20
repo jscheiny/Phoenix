@@ -279,14 +279,11 @@ public class Parser {
 					throw new SyntaxException("@ operator requires right hand operand.", source);
 				}
 				ParseTreeNode next = nodes.get(index + 1);
-				if(!(next instanceof DataNode)) {
-					throw new SyntaxException("@ operator must take a function type variable.",
+				if(!(next instanceof ResolutionNode)) {
+					throw new SyntaxException("@ operator must take a variable name.",
 						source);
 				}
-				if(!(((DataNode)next).getValue() instanceof FunctionVariable)) {
-					throw new SyntaxException("@ operator must take a function type variable.",
-						source);
-				}
+				((ResolutionNode) next).setReferenced(true);
 				curr.setRight(next);
 				nodes.remove(index + 1);
 			}
@@ -325,6 +322,9 @@ public class Parser {
 						type = Type.PREFIX_UNARY;
 					}
 					
+					if(callee instanceof ResolutionNode) {
+						((ResolutionNode) callee).setReferenced(true);
+					}
 					CallNode call = new CallNode(callee, type, source);
 					nodes.set(index, call);
 

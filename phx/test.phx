@@ -1,1 +1,10 @@
-print 4 ^ .5
+function void hello:
+	print "Hello world!"
+
+function int square(int x):
+	return x ^ 2
+
+int x = 5
+print @hello
+
+print (@square)(10)

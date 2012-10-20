@@ -57,9 +57,8 @@ public class FunctionVariable extends Variable {
 	}
 
 	@Override
-	public Variable copy() {
-		// TODO Auto-generated method stub
-		return null;
+	public Variable passValue() {
+		return this;
 	}
 
 	@Override

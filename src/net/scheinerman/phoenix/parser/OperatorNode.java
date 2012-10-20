@@ -853,6 +853,9 @@ public abstract class OperatorNode extends ParseTreeNode {
 		
 		@Override
 		protected Variable doOperation(Variable left, Variable right) {
+			if(!(right instanceof FunctionVariable)) {
+				throw new SyntaxException("@ operator must take a function type variable.", null);
+			}
 			return right;
 		}
 

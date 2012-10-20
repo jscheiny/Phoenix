@@ -80,7 +80,7 @@ public class ArrayVariable extends Variable {
 			if(getTypeName().equals(x.getTypeName())) {
 				elements = new ArrayList<Variable>(array.size());
 				for(int index = 0; index < array.size(); index++) {
-					elements.add(array.getElement(index).copy());
+					elements.add(array.getElement(index).passValue());
 				}
 				return this;
 			}
@@ -201,8 +201,8 @@ public class ArrayVariable extends Variable {
 	}
 
 	@Override
-	public Variable copy() {
-		throw new UnsupportedOperatorException();
+	public Variable passValue() {
+		return this;
 	}
 
 }

@@ -238,7 +238,7 @@ public class IntegerVariable extends Variable {
 	}
 
 	@Override
-	public Variable copy() {
+	public Variable passValue() {
 		return new IntegerVariable(value);
 	}
 	

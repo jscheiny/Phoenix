@@ -216,7 +216,7 @@ public class StringVariable extends Variable {
 	}
 
 	@Override
-	public Variable copy() {
-		return new StringVariable(value);
+	public Variable passValue() {
+		return this;
 	}
 }

@@ -147,7 +147,7 @@ public class TypeVariable extends Variable {
 	}
 
 	@Override
-	public Variable copy() {
+	public Variable passValue() {
 		return new TypeVariable(value);
 	}
 

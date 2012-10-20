@@ -45,7 +45,7 @@ public class VoidVariable extends Variable {
 	}
 
 	@Override
-	public Variable copy() {
+	public Variable passValue() {
 		throw new SyntaxException("Cannot pass void type variable.", null);
 	}
 

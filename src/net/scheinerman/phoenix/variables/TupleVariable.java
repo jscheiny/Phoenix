@@ -164,10 +164,10 @@ public class TupleVariable extends Variable {
 	}
 
 	@Override
-	public Variable copy() {
+	public Variable passValue() {
 		ArrayList<Variable> copy = new ArrayList<Variable>(elements.size());
 		for(Variable v : elements) {
-			copy.add(v.copy());
+			copy.add(v.passValue());
 		}
 		return new TupleVariable(copy);
 	}

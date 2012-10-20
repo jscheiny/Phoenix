@@ -51,9 +51,8 @@ public class LongVariable extends Variable {
 	}
 
 	@Override
-	public Variable copy() {
-		// TODO Auto-generated method stub
-		return null;
+	public Variable passValue() {
+		return new LongVariable(value);
 	}
 
 	@Override
