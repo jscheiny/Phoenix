@@ -34,14 +34,13 @@ public class TryInterpreter extends Interpreter {
 	/**
 	 * Creates a new try block interpreter
      * @param parent the interpreter that is instantiating and running this interpreter
-     * @param source the source code that is being interpreted
      * @param start the line on which to start interpreting
      * @param end the last line to interpret (the line at this index will be interpreted)
 	 * @param catchInterpreter the interpreter for the corresponding catch block
 	 */
-	public TryInterpreter(Interpreter parent, SourceCode source, int start, int end,
+	public TryInterpreter(Interpreter parent, int start, int end,
 			CatchInterpreter catchInterpreter) {
-		super(parent, source, start, end);
+		super(parent, start, end);
 		this.catchIntepreter = catchInterpreter;
 	}
 

@@ -34,7 +34,6 @@ public class DoUntilInterpreter extends LoopInterpreter {
 	/**
 	 * Creates a new do-until loop interpreter.
 	 * @param parent the interpreter that is instantiating and running this interpreter
-	 * @param source the source code that is being interpreted
 	 * @param start the line on which to start interpreting
 	 * @param end the last line to interpret (the line at this index will be interpreted)
 	 * @param predicateLine the line containing the loop predicate
@@ -42,10 +41,9 @@ public class DoUntilInterpreter extends LoopInterpreter {
 	 * @param predicateStartToken the starting index of the predicate in the tokenization
 	 * @param predicateEndToken the ending index of the predicate in the tokenization (inclusive)
 	 */
-	public DoUntilInterpreter(Interpreter parent, SourceCode source, int start, int end,
-			SourceCode.Line predicateLine, ArrayList<Token> predicateTokens,
-			int predicateStartToken, int predicateEndToken) {
-		super(parent, source, start, end, predicateLine, predicateTokens, predicateStartToken,
+	public DoUntilInterpreter(Interpreter parent, int start, int end, SourceCode.Line predicateLine,
+			ArrayList<Token> predicateTokens, int predicateStartToken, int predicateEndToken) {
+		super(parent, start, end, predicateLine, predicateTokens, predicateStartToken,
 			  predicateEndToken, false, true);
 	}
 

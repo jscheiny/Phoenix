@@ -22,14 +22,34 @@ import java.util.*;
 
 import net.scheinerman.phoenix.exceptions.*;
 
+/**
+ * A variable that contains an array of variables all of the same type. This is the only variable
+ * that does not have a fixed type name, its type name varies depending on the elements that it
+ * contains. The type name of this variable is '[x]' where 'x' is the type name of the elements in
+ * the array.
+ *
+ * @author Jonah Scheinerman
+ */
 public class ArrayVariable extends Variable {
 
+	/** The elements of the array. */
 	private ArrayList<Variable> elements;
 	
+	/**
+	 * Construct a new array variable with a given type name. This construct is used when
+	 * initializing new array variables. The type name must be enclosed in square brackets.
+	 * @param typeName the type name of the array
+	 */
 	public ArrayVariable(String typeName) {
 		setTypeName(typeName);
 	}
-	
+
+	/**
+	 * Construct a new array variable from an array of variables. The type name of this array will
+	 * be determine based on the contents of the array. If there are multiple variable types within
+	 * the array, a {@link SyntaxException} will be thrown.
+	 * @param variables the elements of the array
+	 */
 	public ArrayVariable(ArrayList<Variable> variables) {
 		elements = new ArrayList<Variable>(variables.size());
 		boolean first = true;
@@ -43,9 +63,18 @@ public class ArrayVariable extends Variable {
 					throw new SyntaxException("Multiple variable types within array.", null);
 				}
 			}
-			elements.add(var);
+			Variable value = var.passValue();
+			value.setLiteral(false);
+			elements.add(value);
 		}
 		setTypeName("[" + referenceType + "]");
+	}
+	
+	public void setLiteral(boolean literal) {
+		super.setLiteral(literal);
+		for(Variable v : elements) {
+			v.setLiteral(false);
+		}
 	}
 	
 	@Override
@@ -60,17 +89,21 @@ public class ArrayVariable extends Variable {
 		return ret + "]";
 	}
 	
+	/**
+	 * Retrieves the element at the given index of the array.
+	 * @param index the index from which to retrieve an element
+	 * @return the element at that index
+	 */
 	public Variable getElement(int index) {
 		return elements.get(index);
 	}
 	
+	/**
+	 * Returns the number of elements in the array.
+	 * @return the number of elements in the array
+	 */
 	public int size() {
 		return elements.size();
-	}
-	
-	@Override
-	public String toString() {
-		return stringValue();
 	}
 
 	@Override
@@ -80,7 +113,9 @@ public class ArrayVariable extends Variable {
 			if(getTypeName().equals(x.getTypeName())) {
 				elements = new ArrayList<Variable>(array.size());
 				for(int index = 0; index < array.size(); index++) {
-					elements.add(array.getElement(index).passValue());
+					Variable value = array.getElement(index).passValue();
+					value.setLiteral(false);
+					elements.add(value);
 				}
 				return this;
 			}
@@ -88,36 +123,43 @@ public class ArrayVariable extends Variable {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable add(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable subtract(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable multiply(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable divide(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable mod(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable exponentiate(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable negate() {
 		throw new UnsupportedOperatorException();
@@ -140,6 +182,7 @@ public class ArrayVariable extends Variable {
 		return new BooleanVariable(true);
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public BooleanVariable notEqualTo(Variable x) {
 		if(!x.getTypeName().equals(getTypeName())) {
@@ -157,49 +200,64 @@ public class ArrayVariable extends Variable {
 		return new BooleanVariable(false);
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public BooleanVariable lessThan(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public BooleanVariable lessThanOrEqual(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public BooleanVariable greaterThan(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public BooleanVariable greaterThanOrEqual(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable logicalAnd(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable logicalOr(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable logicalNot() {
 		throw new UnsupportedOperatorException();
 	}
 
+	/**
+	 * Retrieves the value in the array at the index of the value given by the right argument, only
+	 * if the right argument is an integer.
+	 */
 	@Override
 	public Variable call(Variable left, Variable right) {
-		if(right == null) {
+		if(right == null && !(right instanceof IntegerVariable)) {
 			throw new InvalidCallParametersException(this, left, right, null);
 		}
-		throw new UnsupportedOperatorException();
+		int index = ((IntegerVariable) right).getValue();
+		if(index < 0)
+			return getElement((size() + (index % size())) % size());
+		return getElement(index % size());
 	}
 
+	/** Pass by reference. */
 	@Override
 	public Variable passValue() {
 		return this;

@@ -19,6 +19,8 @@
 package net.scheinerman.phoenix.variables;
 
 import net.scheinerman.phoenix.exceptions.*;
+import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 import net.scheinerman.phoenix.parser.*;
 
 /**
@@ -36,6 +38,22 @@ import net.scheinerman.phoenix.parser.*;
  */
 public abstract class Variable {
 
+	public static abstract class TypeDefinition<T extends Variable> {
+		private String typeName;
+		
+		public TypeDefinition(String typeName) {
+			this.typeName = typeName;
+		}
+		
+		public String getTypeName() {
+			return typeName;
+		}
+
+		public abstract T createDefaultVariable(Interpreter interpreter);
+		
+		public abstract T createFromLiteral(Interpreter interpreter, String literal, Line source);
+	}
+	
 	/** The type name for this variable. */
 	private String typeName;
 	
@@ -101,6 +119,11 @@ public abstract class Variable {
 	 * @return the string representation of the variable value
 	 */
 	public abstract String stringValue();
+	
+	@Override
+	public final String toString() {
+		return stringValue();
+	}
 	
 	/**
 	 * Returns the version of this variable that should be passed through function parameters. This

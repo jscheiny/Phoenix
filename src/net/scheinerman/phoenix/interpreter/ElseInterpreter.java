@@ -29,12 +29,11 @@ public class ElseInterpreter extends Interpreter {
     /**
      * Construct a new else interpreter.
      * @param parent the parent interpreter that is instantiating and running this one
-     * @param source the source code that is being interpreted
      * @param start the line on which to start interpreting
      * @param end the last line to interpret (the line at this index will be interpreted)
      */
-	public ElseInterpreter(Interpreter parent, SourceCode source, int start, int end) {
-		super(parent, source, start, end);
+	public ElseInterpreter(Interpreter parent, int start, int end) {
+		super(parent, start, end);
 	}
 
 }

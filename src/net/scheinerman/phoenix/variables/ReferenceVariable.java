@@ -1,4 +1,4 @@
-// FunctionVariable.java
+// Reference.java
 // Copyright (C) 2012 by Jonah Scheinerman
 //
 // This file is part of the Phoenix programming language.
@@ -19,61 +19,29 @@
 package net.scheinerman.phoenix.variables;
 
 import net.scheinerman.phoenix.exceptions.*;
-import net.scheinerman.phoenix.interpreter.*;
-import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 
-public class FunctionVariable extends Variable {
+public class ReferenceVariable extends Variable {
 
-	private static final String TYPE_NAME = Interpreter.Statement.FUNCTION.getKeyword();
+	private Variable value;
 	
-	private FunctionInterpreter interpreter;
-	
-	public static class Definition extends TypeDefinition<FunctionVariable> {
-
-		public Definition() {
-			super(TYPE_NAME);
-		}
-
-		@Override
-		public FunctionVariable createDefaultVariable(Interpreter interpreter) {
-			return null;
-		}
-
-		@Override
-		public FunctionVariable createFromLiteral(Interpreter interpreter, String literal,
-				Line source) {
-			return null;
-		}
-
-	}
-
-	public FunctionVariable(FunctionInterpreter interpreter) {
-		super(TYPE_NAME);
-		this.interpreter = interpreter;
+	public ReferenceVariable(Variable value) {
+		super("@" + value.getTypeName());
+		this.value = value;
+		setLiteral(false);
 	}
 	
-	public FunctionInterpreter getInterpreter() {
-		return interpreter;
-	}
-	
-	@Override
-	public Variable call(Variable left, Variable right) {
-		interpreter.call(this, left, right);
-		return interpreter.getReturnVariable();
-	}
-	
-	public String getName() {
-		return interpreter.getName();
+	public Variable getValue() {
+		return value;
 	}
 	
 	@Override
 	public String stringValue() {
-		return interpreter.getDefinition();
+		return value.stringValue();
 	}
-
+	
 	@Override
 	public Variable passValue() {
-		return this;
+		return value;
 	}
 
 	@Override
@@ -83,82 +51,87 @@ public class FunctionVariable extends Variable {
 
 	@Override
 	public Variable add(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.add(x);
 	}
 
 	@Override
 	public Variable subtract(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.subtract(x);
 	}
 
 	@Override
 	public Variable multiply(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.multiply(x);
 	}
 
 	@Override
 	public Variable divide(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.divide(x);
 	}
 
 	@Override
 	public Variable mod(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.mod(x);
 	}
 
 	@Override
 	public Variable exponentiate(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.exponentiate(x);
 	}
 
 	@Override
 	public Variable negate() {
-		throw new UnsupportedOperatorException();
+		return value.negate();
 	}
 
 	@Override
 	public BooleanVariable equalTo(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.equalTo(x);
 	}
 
 	@Override
 	public BooleanVariable notEqualTo(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.notEqualTo(x);
 	}
 
 	@Override
 	public BooleanVariable lessThan(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.lessThan(x);
 	}
 
 	@Override
 	public BooleanVariable lessThanOrEqual(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.lessThanOrEqual(x);
 	}
 
 	@Override
 	public BooleanVariable greaterThan(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.greaterThan(x);
 	}
 
 	@Override
 	public BooleanVariable greaterThanOrEqual(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.greaterThanOrEqual(x);
 	}
 
 	@Override
 	public Variable logicalAnd(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.logicalAnd(x);
 	}
 
 	@Override
 	public Variable logicalOr(Variable x) {
-		throw new UnsupportedOperatorException();
+		return value.logicalOr(x);
 	}
 
 	@Override
 	public Variable logicalNot() {
-		throw new UnsupportedOperatorException();
+		return value.logicalNot();
+	}
+
+	@Override
+	public Variable call(Variable left, Variable right) {
+		return value.call(left, right);
 	}
 
 }

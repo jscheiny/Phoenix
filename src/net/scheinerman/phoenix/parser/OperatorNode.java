@@ -65,7 +65,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 		public static final String GREATER_THAN = ">";
 		public static final String GREATER_THAN_EQUAL = ">=";
 		public static final String ARG_SEPARATOR = ",";
-		public static final String FUNCTION_REF = "@";
+		public static final String REFERENCE = "@";
 	}
 
 	/** The set of all operator symbols that act as delimiters in expressions. */
@@ -117,7 +117,7 @@ public abstract class OperatorNode extends ParseTreeNode {
 		putOperator(Strings.OR, LogicalOr.class, false);
 		putOperator(Strings.NOT, LogicalNot.class, false);
 		putOperator(Symbols.ARG_SEPARATOR, ArgSeparator.class, true);
-		putOperator(Symbols.FUNCTION_REF, FunctionReference.class, true);
+		putOperator(Symbols.REFERENCE, Reference.class, true);
 	}
 	
 	/**
@@ -909,25 +909,25 @@ public abstract class OperatorNode extends ParseTreeNode {
 	}
 	
 	/**
-	 * An operator node which executes the function reference operation (@).
+	 * An operator node which executes the reference operation (@).
 	 *
 	 * @author Jonah Scheinerman
 	 */
-	public static class FunctionReference extends OperatorNode {
+	public static class Reference extends OperatorNode {
 		/**
 		 * Construct the new operator from the source line.
 		 * @param source the line of source code from which this node is generated
 		 */
-		public FunctionReference(SourceCode.Line source) {
-			super(Type.PREFIX_UNARY, Symbols.FUNCTION_REF, source);
+		public Reference(SourceCode.Line source) {
+			super(Type.PREFIX_UNARY, Symbols.REFERENCE, source);
 		}
 		
 		@Override
 		protected Variable doOperation(Variable left, Variable right) {
-			if(!(right instanceof FunctionVariable)) {
-				throw new SyntaxException("@ operator must take a function type variable.", null);
+			if(right.isLiteral()) {
+				throw new SyntaxException("Cannot reference literal value.", null);
 			}
-			return right;
+			return new ReferenceVariable(right);
 		}
 
 		@Override

@@ -44,17 +44,15 @@ public class IfConditionInterpreter extends Interpreter {
 	/**
 	 * Creates a new conditional interpreter
      * @param parent the interpreter that is instantiating and running this interpreter
-     * @param source the source code that is being interpreted
      * @param start the line on which to start interpreting
      * @param end the last line to interpret (the line at this index will be interpreted)
      * @param predicateTokens the tokenization of the predicate
 	 * @param predicateStartToken the starting index of the predicate in the tokenization
 	 * @param predicateEndToken the ending index of the predicate in the tokenization (inclusive)
 	 */
-	public IfConditionInterpreter(Interpreter parent, SourceCode source, int start,
-			int end, ArrayList<Token> predicateTokens, int predicateStartToken,
-			int predicateEndToken) {
-		super(parent, source, start, end);
+	public IfConditionInterpreter(Interpreter parent, int start, int end,
+			ArrayList<Token> predicateTokens, int predicateStartToken, int predicateEndToken) {
+		super(parent, start, end);
 
 		predicateLine = getSourceCode().line(getStartLine() - 1);
 		predicateTree = Parser.getParseTree(this, predicateLine, predicateTokens,

@@ -22,6 +22,7 @@ import java.util.*;
 
 import net.scheinerman.phoenix.interpreter.*;
 import net.scheinerman.phoenix.interpreter.SourceCode.Line;
+import net.scheinerman.phoenix.runner.*;
 
 import com.sun.tools.javac.util.*;
 
@@ -107,12 +108,13 @@ public class PhoenixRuntimeException extends RuntimeException {
 	/**
 	 * Prints the Phoenix stack trace to standard error.
 	 */
-	public void printPhoenixTrace() {
-		System.err.println(errorType + ": " + message);
-		System.err.println("        " + sourceLine);
+	public void printPhoenixTrace(RunConfigurations config) {
+		config.getErrorStream().println(errorType + ": " + message);
+		config.getErrorStream().println("        " + sourceLine);
 		while(!trace.isEmpty()) {
 			Pair<Line, String> traceElement = trace.remove();
-			System.err.println("... in " + traceElement.snd + " " + traceElement.fst.getLocationString());
+			config.getErrorStream().println("... in " + traceElement.snd + " " +
+				traceElement.fst.getLocationString());
 		}
 	}
 	

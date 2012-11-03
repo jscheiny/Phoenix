@@ -19,11 +19,10 @@
 package net.scheinerman.phoenix.parser;
 
 import java.util.*;
-import java.util.regex.*;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
-import net.scheinerman.phoenix.parser.OperatorNode.*;
+import net.scheinerman.phoenix.parser.OperatorNode.Reference;
 import net.scheinerman.phoenix.parser.ParseTreeNode.Surround;
 import net.scheinerman.phoenix.parser.ParseTreeNode.Type;
 import net.scheinerman.phoenix.parser.Tokenizer.Token;
@@ -185,21 +184,6 @@ public class Parser {
 		}
 		return parens.isEmpty();
 	}
-	
-	/** A pattern that matches integer literals. */
-	private static final Pattern INTEGER_LITERAL = Pattern.compile("\\d+");
-
-	/** First of the patterns that matches double literals. */
-	private static final Pattern DOUBLE_LITERAL_1 = Pattern.compile("\\d+[dD]");
-
-	/** Second of the patterns that matches double literals. */
-	private static final Pattern DOUBLE_LITERAL_2 = Pattern.compile("\\.\\d+[dD]?");
-
-	/** Third of the patterns that matches double literals. */
-	private static final Pattern DOUBLE_LITERAL_3 = Pattern.compile("\\d+\\.\\d*[dD]?");
-	
-	/** A pattern that matches long literals. */
-	private static final Pattern LONG_LITERAL = Pattern.compile("\\d+[lL]");
 
 	/**
 	 * Parses and builds a parse tree for a given expression. This is a recursive helper method that
@@ -269,7 +253,7 @@ public class Parser {
 	}
 	
 	/** 
-	 * Sets up function references in the list of nodes. If a {@link FunctionReference}
+	 * Sets up function references in the list of nodes. If a {@link Reference}
 	 * node is found in the list, then the next token after it is set as the function name that is
 	 * being referenced.
 	 * @param nodes the list of nodes in which to set up function references
@@ -277,7 +261,7 @@ public class Parser {
 	private static void setUpReferences(ArrayList<ParseTreeNode> nodes, SourceCode.Line source) {
 		for(int index = 0; index < nodes.size(); index++) {
 			ParseTreeNode curr = nodes.get(index);
-			if(curr instanceof OperatorNode.FunctionReference) {
+			if(curr instanceof OperatorNode.Reference) {
 				if(index == nodes.size() - 1) {
 					throw new SyntaxException("@ operator requires right hand operand.", source);
 				}
@@ -447,50 +431,11 @@ public class Parser {
 	private static ParseTreeNode parseToken(Token token, Interpreter interpreter,
 			SourceCode.Line source) {
 		String phrase = token.getToken();
-		// Parse string literal...
-		if(phrase.charAt(0) == '"' || phrase.charAt(0) == '\'') {
-			StringVariable var = new StringVariable(phrase, true, source);
-			return new DataNode(var, source);
+		Variable literal = interpreter.getConfiguration().createVariableFromLiteral(interpreter,
+			phrase, source);
+		if(literal != null) {
+			return new DataNode(literal, source);
 		}
-		// Parse type literal...
-		if(Interpreter.Strings.TYPES.contains(phrase)) {
-			TypeVariable var = new TypeVariable(phrase);
-			return new DataNode(var, source);
-		}
-		// Parse integral literal...
-		if(INTEGER_LITERAL.matcher(phrase).matches()) {
-			long value = Long.parseLong(phrase);
-			Variable var;
-			if(value > Integer.MAX_VALUE || value < Integer.MIN_VALUE) {
-				var = new LongVariable((long)value);
-			} else {
-				var = new IntegerVariable((int)value);
-			}
-			return new DataNode(var, source);
-		}
-		// Parse long literal...
-		if(LONG_LITERAL.matcher(phrase).matches()) {
-			LongVariable var = new LongVariable(Long.parseLong(phrase.substring(0,
-				phrase.length() - 1)));
-			return new DataNode(var, source);
-		}
-		// Parse double literal...
-		if(DOUBLE_LITERAL_1.matcher(phrase).matches() ||
-		   DOUBLE_LITERAL_2.matcher(phrase).matches() ||
-		   DOUBLE_LITERAL_3.matcher(phrase).matches()) {
-			DoubleVariable var;
-			if(phrase.endsWith("d")) {
-				phrase = phrase.substring(0, phrase.length() - 1);
-			}
-			var = new DoubleVariable(Double.parseDouble(phrase));
-			return new DataNode(var, source);
-		}
-		// Parse boolean literal...
-		if(phrase.equals(Interpreter.Strings.TRUE) || phrase.equals(Interpreter.Strings.FALSE)) {
-			BooleanVariable var = new BooleanVariable(phrase.equals(Interpreter.Strings.TRUE));
-			return new DataNode(var, source);
-		}
-		// Throw error if keyword...
 		if(Interpreter.KEYWORDS.contains(phrase)) {
 			throw new SyntaxException("Unexpected keyword '" + phrase + "'.", source);
 		}

@@ -74,7 +74,6 @@ public class LoopInterpreter extends Interpreter {
 	/**
 	 * Constructs a new loop interpreter with no otherwise block.
 	 * @param parent the interpreter that is instantiating and running this interpreter
-	 * @param source the source code that is being interpreted
 	 * @param start the line on which to start interpreting
 	 * @param end the last line to interpret (the line at this index will be interpreted)
 	 * @param predicateLine the line containing the loop predicate
@@ -84,18 +83,16 @@ public class LoopInterpreter extends Interpreter {
 	 * @param predicateCheckedAtBeginning whether the loop predicate is checked at the beginning
 	 * @param predicateLoopEndValue the value that the predicate should become to end the loop
 	 */
-	public LoopInterpreter(Interpreter parent, SourceCode source, int start, int end,
-			SourceCode.Line predicateLine, ArrayList<Token> predicateTokens,
-			int predicateStartToken, int predicateEndToken, boolean predicateCheckedAtBeginning,
-			boolean predicateLoopEndValue) {
-		this(parent, source, start, end, predicateLine, predicateTokens, predicateStartToken,
+	public LoopInterpreter(Interpreter parent, int start, int end, SourceCode.Line predicateLine,
+			ArrayList<Token> predicateTokens, int predicateStartToken, int predicateEndToken,
+			boolean predicateCheckedAtBeginning, boolean predicateLoopEndValue) {
+		this(parent, start, end, predicateLine, predicateTokens, predicateStartToken,
 			 predicateEndToken, predicateCheckedAtBeginning, predicateLoopEndValue, null);
 	}
 
 	/**
 	 * Constructs a new loop interpreter with no otherwise block.
 	 * @param parent the interpreter that is instantiating and running this interpreter
-	 * @param source the source code that is being interpreted
 	 * @param start the line on which to start interpreting
 	 * @param end the last line to interpret (the line at this index will be interpreted)
 	 * @param predicateLine the line containing the loop predicate
@@ -106,11 +103,11 @@ public class LoopInterpreter extends Interpreter {
 	 * @param predicateLoopEndValue the value that the predicate should become to end the loop
 	 * @param otherwise the interpreter for executing the otherwise block (null if there is none)
 	 */
-	public LoopInterpreter(Interpreter parent, SourceCode source, int start, int end,
-			SourceCode.Line predicateLine, ArrayList<Token> predicateTokens,
-			int predicateStartToken, int predicateEndToken, boolean predicateCheckedAtBeginning,
-			boolean predicateLoopEndValue, OtherwiseInterpreter otherwise) {
-		super(parent, source, start, end);
+	public LoopInterpreter(Interpreter parent, int start, int end, SourceCode.Line predicateLine,
+			ArrayList<Token> predicateTokens, int predicateStartToken, int predicateEndToken,
+			boolean predicateCheckedAtBeginning, boolean predicateLoopEndValue,
+			OtherwiseInterpreter otherwise) {
+		super(parent, start, end);
 		
 		this.predicateLine = predicateLine;
 		this.predicateTokens = predicateTokens;

@@ -22,24 +22,36 @@ import java.util.*;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 
 public class TupleVariable extends Variable {
+	
+	public static class Definition extends TypeDefinition<TupleVariable> {
+		public Definition() {
+			super(null);
+		}
 
-	private static final String TYPE_NAME = Interpreter.Strings.TUPLE;
+		@Override
+		public TupleVariable createDefaultVariable(Interpreter interpreter) {
+			return null;
+		}
+
+		@Override
+		public TupleVariable createFromLiteral(Interpreter interpreter, String literal,
+				Line source) {
+			return null;
+		}
+	}
 	
 	private ArrayList<Variable> elements;
 	
 	public TupleVariable(ArrayList<Variable> elements) {
-		super(TYPE_NAME);
+		super(null);
 		if(elements == null) {
 			this.elements = new ArrayList<Variable>();
 		} else {
 			this.elements = elements;
 		}
-	}
-	
-	public String toString() {
-		return stringValue();
 	}
 	
 	@Override

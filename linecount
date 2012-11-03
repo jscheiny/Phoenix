@@ -3,5 +3,4 @@ export PREFIX=src/net/scheinerman/phoenix
 wc -l $PREFIX/exceptions/*.java \
 	  $PREFIX/interpreter/*.java \
 	  $PREFIX/parser/*.java \
-	  $PREFIX/test/*.java \
 	  $PREFIX/variables/*.java \

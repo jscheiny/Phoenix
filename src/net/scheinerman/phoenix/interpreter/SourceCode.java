@@ -303,7 +303,11 @@ public class SourceCode {
 	private File file;
 
 	/** The list of lines of code in this source. */
-	private ArrayList<Line> code = new ArrayList<Line>();
+	protected ArrayList<Line> code = new ArrayList<Line>();
+	
+	public SourceCode() {
+		
+	}
 	
 	/**
 	 * Creates a new source code object from a file at a given path.

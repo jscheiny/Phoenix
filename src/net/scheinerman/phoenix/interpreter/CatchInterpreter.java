@@ -31,12 +31,11 @@ public class CatchInterpreter extends Interpreter {
     /**
      * Construct a new catch interpreter.
      * @param parent the interpreter that is instantiating and running this interpreter
-     * @param source the source code that is being interpreted
      * @param start the line on which to start interpreting
      * @param end the last line to interpret (the line at this index will be interpreted)
      */	
-	public CatchInterpreter(Interpreter parent, SourceCode source, int start, int end) {
-		super(parent, source, start, end);
+	public CatchInterpreter(Interpreter parent, int start, int end) {
+		super(parent, start, end);
 	}
 
     /**

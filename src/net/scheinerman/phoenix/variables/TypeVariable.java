@@ -20,11 +20,32 @@ package net.scheinerman.phoenix.variables;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 
 public class TypeVariable extends Variable {
-
+	
 	private static final String TYPE_NAME = Interpreter.Strings.TYPE;
 
+	public static class Definition extends TypeDefinition<TypeVariable> {
+		public Definition() {
+			super(TYPE_NAME);
+		}
+
+		@Override
+		public TypeVariable createDefaultVariable(Interpreter interpreter) {
+			return new TypeVariable(Interpreter.Strings.VOID);
+		}
+
+		@Override
+		public TypeVariable createFromLiteral(Interpreter interpreter, String literal,
+				Line source) {
+			if(interpreter.getConfiguration().isTypeName(literal)) {
+				return new TypeVariable(literal);
+			}
+			return null;
+		}
+	}
+	
 	private String value;
 	
 	public TypeVariable() {
@@ -42,11 +63,6 @@ public class TypeVariable extends Variable {
 
 	@Override
 	public String stringValue() {
-		return value;
-	}
-	
-	@Override
-	public String toString() {
 		return value;
 	}
 
@@ -144,6 +160,9 @@ public class TypeVariable extends Variable {
 	@Override
 	public Variable call(Variable left, Variable right) {
 		if(left != null || right == null) {
+			throw new InvalidCallParametersException(this, left, right, null);
+		}
+		if(right instanceof TupleVariable) {
 			throw new InvalidCallParametersException(this, left, right, null);
 		}
 		return new TypeVariable(right.getTypeName());

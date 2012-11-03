@@ -21,7 +21,7 @@ package net.scheinerman.phoenix.parser;
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
 import net.scheinerman.phoenix.interpreter.SourceCode.Line;
-import net.scheinerman.phoenix.parser.OperatorNode.FunctionReference;
+import net.scheinerman.phoenix.parser.OperatorNode.Reference;
 import net.scheinerman.phoenix.variables.*;
 
 /**
@@ -76,11 +76,11 @@ public class ResolutionNode extends ParseTreeNode {
 	}
 
 	/**
-	 * Sets whether this node has been enclosed in a {@link FunctionReference} or in a
+	 * Sets whether this node has been enclosed in a {@link Reference} or in a
 	 * {@link CallNode}. If this node has been, then this node will simply return the resolution of
 	 * its name value. If however, this node has not been referenced and if the resolution of the
 	 * variable's name is a function, then this makes the call to that function with no parameters.
-	 * @param referenced whether this node has been referenced by a {@link FunctionReference} or a
+	 * @param referenced whether this node has been referenced by a {@link Reference} or a
 	 * {@link CallNode}.
 	 */
 	public void setReferenced(boolean referenced) {

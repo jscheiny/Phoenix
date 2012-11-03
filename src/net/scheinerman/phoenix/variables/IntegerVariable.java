@@ -18,13 +18,43 @@
 
 package net.scheinerman.phoenix.variables;
 
+import java.util.regex.*;
+
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 
 public class IntegerVariable extends Variable {
 
 	private static final String TYPE_NAME = Interpreter.Strings.INTEGER;
 	
+	/** A pattern that matches integer literals. */
+	private static final Pattern INTEGER_LITERAL = Pattern.compile("\\d+");
+	
+	public static class Definition extends TypeDefinition<IntegerVariable> {
+
+		public Definition() {
+			super(TYPE_NAME);
+		}
+
+		@Override
+		public IntegerVariable createDefaultVariable(Interpreter interpreter) {
+			return new IntegerVariable();
+		}
+
+		@Override
+		public IntegerVariable createFromLiteral(Interpreter interpreter, String literal,
+				Line source) {
+			if(!INTEGER_LITERAL.matcher(literal).matches())
+				return null;
+			long value = Long.parseLong(literal);
+			if(value > Integer.MAX_VALUE || value < Integer.MIN_VALUE)
+				return null;
+			return new IntegerVariable((int)value);
+		}
+
+	}
+
 	private int value;
 	
 	public IntegerVariable() {
@@ -39,11 +69,6 @@ public class IntegerVariable extends Variable {
 	@Override
 	public String stringValue() {
 		return "" + value;
-	}
-	
-	@Override
-	public String toString() {
-		return stringValue();
 	}
 	
 	public int getValue() {

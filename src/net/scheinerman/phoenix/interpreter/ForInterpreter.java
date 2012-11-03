@@ -51,7 +51,6 @@ public class ForInterpreter extends LoopInterpreter {
 	/**
 	 * Creates a new for loop interpreter
 	 * @param parent the interpreter that is instantiating and running this interpreter
-	 * @param source the source code that is being interpreted
 	 * @param start the line on which to start interpreting
 	 * @param end the last line to interpret (the line at this index will be interpreted)
 	 * @param statementLine the line containing the for statement
@@ -60,10 +59,10 @@ public class ForInterpreter extends LoopInterpreter {
 	 * @param secondSeparator the index of the second semicolon token in the for statment
 	 * @param otherwise the interpreter for executing the otherwise block (null if there is none)
 	 */
-	public ForInterpreter(Interpreter parent, SourceCode source, int start, int end,
-			SourceCode.Line statementLine, ArrayList<Token> statementTokens,
-			int firstSeparator, int secondSeparator, OtherwiseInterpreter otherwise) {		
-		super(parent, source, start, end, statementLine, statementTokens, firstSeparator + 1,
+	public ForInterpreter(Interpreter parent, int start, int end, SourceCode.Line statementLine,
+			ArrayList<Token> statementTokens, int firstSeparator, int secondSeparator,
+			OtherwiseInterpreter otherwise) {		
+		super(parent, start, end, statementLine, statementTokens, firstSeparator + 1,
 			  secondSeparator - 1, true, false, otherwise);		
 
 		setupInitializer(statementTokens, firstSeparator);
@@ -82,9 +81,9 @@ public class ForInterpreter extends LoopInterpreter {
 				initializerTokens.add(statementTokens.get(index));
 			}
 			
-			isVariableDeclaration = isInitialization(initializerTokens);
+			isVariableDeclaration = isInitialization(getConfiguration(), initializerTokens);
 			if(isVariableDeclaration) {
-				ArrayList<Token> typeTokens = getTypeName(initializerTokens, 0);
+				ArrayList<Token> typeTokens = getTypeName(getConfiguration(), initializerTokens, 0);
 				initializerType = concatenate(typeTokens);
 				initializerName = initializerTokens.get(typeTokens.size()).getToken();
 

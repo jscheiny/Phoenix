@@ -18,19 +18,71 @@
 
 package net.scheinerman.phoenix.variables;
 
+import java.util.regex.*;
+
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 
+/**
+ * A variable that contains a double precision number value. The type name of this variable is
+ * 'double'.
+ *
+ * @author Jonah Scheinerman
+ */
 public class DoubleVariable extends Variable {
 
+	/** The variable type name, 'double'. */
 	private static final String TYPE_NAME = Interpreter.Strings.DOUBLE;
 
+	/** First of the patterns that matches double literals. */
+	private static final Pattern DOUBLE_LITERAL_1 = Pattern.compile("\\d+[dD]");
+
+	/** Second of the patterns that matches double literals. */
+	private static final Pattern DOUBLE_LITERAL_2 = Pattern.compile("\\.\\d+[dD]?");
+
+	/** Third of the patterns that matches double literals. */
+	private static final Pattern DOUBLE_LITERAL_3 = Pattern.compile("\\d+\\.\\d*[dD]?");
+	
+	public static class Definition extends TypeDefinition<DoubleVariable> {
+
+		public Definition() {
+			super(TYPE_NAME);
+		}
+
+		@Override
+		public DoubleVariable createDefaultVariable(Interpreter interpreter) {
+			return new DoubleVariable();
+		}
+
+		@Override
+		public DoubleVariable createFromLiteral(Interpreter interpreter, String literal,
+				Line source) {
+			if(DOUBLE_LITERAL_1.matcher(literal).matches() ||
+			   DOUBLE_LITERAL_2.matcher(literal).matches() ||
+			   DOUBLE_LITERAL_3.matcher(literal).matches()) {
+				if(literal.endsWith("d")) {
+					literal = literal.substring(0, literal.length() - 1);
+				}
+				return new DoubleVariable(Double.parseDouble(literal));
+			}
+			return null;	
+		}
+
+	}
+	
+	/** The double value of this variable. */
 	private double value;
 	
+	/** Create a new double variable with value 0. */
 	public DoubleVariable() {
 		this(0);
 	}
 	
+	/**
+     * Create a new double variable with a given value. 
+ 	 * @param value the value of the variable
+	 */
 	public DoubleVariable(double value) {
 		super(TYPE_NAME);
 		this.value = value;
@@ -40,12 +92,11 @@ public class DoubleVariable extends Variable {
 	public String stringValue() {
 		return "" + value;
 	}
-	
-	@Override
-	public String toString() {
-		return "" + value;
-	}
-	
+
+	/**
+	 * Returns the double value of this variable.
+	 * @return the double value of this variable
+	 */
 	public double getValue() {
 		return value;
 	}
@@ -216,26 +267,31 @@ public class DoubleVariable extends Variable {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable logicalAnd(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable logicalOr(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable logicalNot() {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable call(Variable left, Variable right) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Pass by value. */
 	@Override
 	public Variable passValue() {
 		return new DoubleVariable(value);

@@ -18,12 +18,44 @@
 
 package net.scheinerman.phoenix.variables;
 
+import java.util.regex.*;
+
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 
 public class LongVariable extends Variable {
 
 	private static final String TYPE_NAME = Interpreter.Strings.LONG;
+	
+	/** A pattern that matches integer literals. */
+	private static final Pattern INTEGER_LITERAL = Pattern.compile("\\d+");
+
+	/** A pattern that matches long literals. */
+	private static final Pattern LONG_LITERAL = Pattern.compile("\\d+[lL]");
+	
+	public static class Definition extends TypeDefinition<LongVariable> {
+
+		public Definition() {
+			super(TYPE_NAME);
+		}
+
+		@Override
+		public LongVariable createDefaultVariable(Interpreter interpreter) {
+			return new LongVariable();
+		}
+
+		@Override
+		public LongVariable createFromLiteral(Interpreter interpreter, String literal,
+				Line source) {
+			if(!INTEGER_LITERAL.matcher(literal).matches() &&
+			   !LONG_LITERAL.matcher(literal).matches()) {
+				return null;
+			}
+			return new LongVariable(Long.parseLong(literal));
+		}
+		
+	}
 	
 	private long value;
 	
@@ -39,11 +71,6 @@ public class LongVariable extends Variable {
 	@Override
 	public String stringValue() {
 		return "" + value;
-	}
-	
-	@Override
-	public String toString() {
-		return stringValue();
 	}
 	
 	public long getValue() {

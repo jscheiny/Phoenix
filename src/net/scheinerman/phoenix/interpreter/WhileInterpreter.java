@@ -33,7 +33,6 @@ public class WhileInterpreter extends LoopInterpreter {
 	/**
 	 * Creates a new while loop interpreter.
 	 * @param parent the interpreter that is instantiating and running this interpreter
-	 * @param source the source code that is being interpreted
 	 * @param start the line on which to start interpreting
 	 * @param end the last line to interpret (the line at this index will be interpreted)
 	 * @param predicateTokens the tokenization of the predicate
@@ -41,10 +40,10 @@ public class WhileInterpreter extends LoopInterpreter {
 	 * @param predicateEndToken the ending index of the predicate in the tokenization (inclusive)
 	 * @param otherwise the interpreter for executing the otherwise block (null if there is none)
 	 */
-	public WhileInterpreter(Interpreter parent, SourceCode source, int start, int end,
+	public WhileInterpreter(Interpreter parent, int start, int end,
 			ArrayList<Token> predicateTokens, int predicateStartToken, int predicateEndToken,
 			OtherwiseInterpreter otherwise) {
-		super(parent, source, start, end, source.line(start - 1), predicateTokens,
-				predicateStartToken, predicateEndToken, true, false, otherwise);
+		super(parent, start, end, parent.getSourceCode().line(start - 1), predicateTokens,
+		      predicateStartToken, predicateEndToken, true, false, otherwise);
 	}
 }

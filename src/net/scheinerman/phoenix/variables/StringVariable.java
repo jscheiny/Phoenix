@@ -22,6 +22,7 @@ import java.util.*;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 
 public class StringVariable extends Variable {
 
@@ -38,6 +39,29 @@ public class StringVariable extends Variable {
 	
 	private static final String TYPE_NAME = Interpreter.Strings.STRING;
 
+	public static class Definition extends TypeDefinition<StringVariable> {
+
+		public Definition() {
+			super(TYPE_NAME);
+		}
+
+		@Override
+		public StringVariable createDefaultVariable(Interpreter interpreter) {
+			return new StringVariable();
+		}
+
+		@Override
+		public StringVariable createFromLiteral(Interpreter interpreter, String literal,
+				Line source) {
+			if((literal.startsWith("\"") && literal.endsWith("\"")) ||
+			   (literal.startsWith("'") && literal.endsWith("'"))) {
+				return new StringVariable(literal, true, source);
+			}
+			return null;
+		}
+		
+	}
+	
 	private String value;
 	
 	public StringVariable() {
@@ -54,7 +78,7 @@ public class StringVariable extends Variable {
 	}
 	
 	public StringVariable(String value) {
-		super("str");
+		super(TYPE_NAME);
 		this.value = value;
 	}
 	
@@ -79,10 +103,6 @@ public class StringVariable extends Variable {
 	}
 	
 	public String getValue() {
-		return value;
-	}
-	
-	public String toString() {
 		return value;
 	}
 

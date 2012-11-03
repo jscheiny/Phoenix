@@ -26,6 +26,7 @@ import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 import net.scheinerman.phoenix.parser.*;
 import net.scheinerman.phoenix.parser.Tokenizer.Token;
+import net.scheinerman.phoenix.runner.*;
 import net.scheinerman.phoenix.variables.*;
 
 import com.sun.tools.javac.util.*;
@@ -79,9 +80,6 @@ public class Interpreter {
 		public static final String OR = "or";
 		public static final String NOT = "not";
 
-		/** Contains all named types. */
-		public static final HashSet<String> TYPES = new HashSet<String>();
-
 		// Initialize keywords, types, and operators.
 		static {
 			KEYWORDS.add(INTEGER);
@@ -96,14 +94,6 @@ public class Interpreter {
 			KEYWORDS.add(AND);
 			KEYWORDS.add(OR);
 			KEYWORDS.add(NOT);
-
-			TYPES.add(INTEGER);
-			TYPES.add(DOUBLE);
-			TYPES.add(STRING);
-			TYPES.add(BOOLEAN);
-			TYPES.add(LONG);
-			TYPES.add(TYPE);
-			TYPES.add(Statement.FUNCTION.getKeyword());
 		}
 	}
 
@@ -240,6 +230,8 @@ public class Interpreter {
 	 */
 	private static final Pattern VALID_NAME = Pattern.compile("[a-zA-Z_][\\w]*");
 
+	private RunConfigurations config;
+
 	/** The source code that is being interpreted. */
 	private SourceCode source;
 	
@@ -259,7 +251,7 @@ public class Interpreter {
 	private VariableAllocationTable vat;
 	
 	/** The condition under which this interpretation ended. */
-	private EndCondition endCondition = EndCondition.NORMAL;
+	protected EndCondition endCondition = EndCondition.NORMAL;
 	
 	/** The line on which this interpretation ended, if the ending was abnormal. */
 	protected Line endConditionLine = null;
@@ -280,12 +272,33 @@ public class Interpreter {
 	}
 
 	/**
+	 * Constructs a new interpreter that interprets the code at a given file path.
+	 * @param path the path to the file to interpret
+	 * @param config the run configurations
+	 * @throws FileNotFoundException if the file path does not exist
+	 */
+	public Interpreter(String path, RunConfigurations config) throws FileNotFoundException {
+		this(new SourceCode(path), config);
+	}
+
+	
+	/**
 	 * Constructs a new interpreter that interprets the code in a given file.
 	 * @param file the file to interpret
 	 * @throws FileNotFoundException if the file does not exist
 	 */
 	public Interpreter(File file) throws FileNotFoundException {
 		this(new SourceCode(file));
+	}
+	
+	/**
+	 * Constructs a new interpreter that interprets the code in a given file.
+	 * @param file the file to interpret
+	 * @param config the run configurations
+	 * @throws FileNotFoundException if the file does not exist
+	 */
+	public Interpreter(File file, RunConfigurations config) throws FileNotFoundException {
+		this(new SourceCode(file), config);
 	}
 
 	/**
@@ -295,13 +308,34 @@ public class Interpreter {
 	public Interpreter(SourceCode source) {
 		this(null, source, 0, source.size() - 1);
 	}
+	
+	/**
+	 * Constructs a new interpreter that interprets all of the given source code.
+	 * @param source the source code to interpret
+	 * @param config the run configurations
+	 */
+	public Interpreter(SourceCode source, RunConfigurations config) {
+		this(source, 0, source.size() - 1, config);
+	}
 
+	/**
+	 * Constructs a new interpreter that is interprets a section of the parent's source code for the
+	 * parent interpreter, before returning control to that parent.
+	 * @param parent the parent of this interpreter that is delegating interpretation of a section
+	 * of code to this interpreter
+	 * @param start the index of the start line for interpretation
+	 * @param end the index of the last line for interpretation (this line will be interpreted)
+	 */
+	public Interpreter(Interpreter parent, int start, int end) {
+		this(parent, parent.getSourceCode(), start, end);
+	}
+	
 	/**
 	 * Constructs a new interpreter that is interprets a section of the given source code for the
 	 * parent interpreter, before returning control to that parent.
 	 * @param parent the parent of this interpreter that is delegating interpretation of a section
 	 * of code to this interpreter
-	 * @param source the source code from which the interpreted code will be taken
+	 * @param source the source code that is being interpreted
 	 * @param start the index of the start line for interpretation
 	 * @param end the index of the last line for interpretation (this line will be interpreted)
 	 */
@@ -313,9 +347,29 @@ public class Interpreter {
 		if(this.parent == null) {
 			topLevel = true;
 			vat = new VariableAllocationTable();
+			config = RunConfigurations.Factory.createWithStandardConfigurations();
+			config.insertModules(this);
 		} else {
 			vat = parent.getVAT();
+			config = parent.getConfiguration();
 		}
+	}
+
+	/**
+	 * Constructs a new interpreter that is interprets a section of the given source code.
+	 * @param source the source code that is being interpreted
+	 * @param start the index of the start line for interpretation
+	 * @param end the index of the last line for interpretation (this line will be interpreted)
+	 * @param config the run configurations
+	 */
+	public Interpreter(SourceCode source, int start, int end, RunConfigurations config) {
+		this.source = source;
+		this.start = start;
+		this.end = end;
+		this.config = config;
+		topLevel = true;
+		vat = new VariableAllocationTable();
+		config.insertModules(this);
 	}
 	
 	/**
@@ -335,6 +389,14 @@ public class Interpreter {
 		this.vat = vat;
 	}
 
+	public final void setStartLine(int start) {
+		this.start = start;
+	}
+
+	public final void setEndLine(int end) {
+		this.end = end;
+	}
+	
 	/**
 	 * Returns the line that this interpretation started on.
 	 * @return the index of the first line of interpretation
@@ -386,6 +448,14 @@ public class Interpreter {
 	}
 	
 	/**
+	 * Returns the run configurations for this interpreter.
+	 * @return the run configurations
+	 */
+	public final RunConfigurations getConfiguration() {
+		return config;
+	}
+	
+	/**
 	 * Interprets and executes the code that this interpreter has been delegated. This returns the
 	 * state under which this interpreter ended as an {@link EndCondition}.
 	 * @return the condition under which this interpreter ended
@@ -424,14 +494,15 @@ public class Interpreter {
 
 		} catch(PhoenixRuntimeException phoenixException) {
 			if(topLevel) {
-				phoenixException.printPhoenixTrace();
+				phoenixException.printPhoenixTrace(config);
 			} else {
 				throw phoenixException;
 			}
 		} catch(Exception exception) {
-			System.err.println("An internal error has occurred. Please send the following output\n"+
-							   "and the code that produced this error to jonah@scheinerman.net");
-			exception.printStackTrace();
+			config.getErrorStream().println(
+				"An internal error has occurred. Please send the following output\n"+
+				"and the code that produced this error to jonah@scheinerman.net");
+			exception.printStackTrace(config.getErrorStream());
 			System.exit(1);
 		}
 		
@@ -448,7 +519,7 @@ public class Interpreter {
 	 * @param line the line to be setup for execution
 	 * @param index the index of the line
 	 */
-	private void setupUndefinedStatement(Line line, int index) {
+	protected void setupUndefinedStatement(Line line, int index) {
 		ArrayList<Token> tokenization = line.tokenize();
 		String content = line.getLineContent();
 
@@ -485,7 +556,7 @@ public class Interpreter {
 		} else if(isFunctionDeclaration(tokenization)) {
 			setupFunctionDeclaration(tokenization, line, index);
 			
-		} else if(isInitialization(tokenization)) {
+		} else if(isInitialization(config, tokenization)) {
 			setupInitialization(tokenization, line);
 			
 		} else if(isPrint(tokenization)) {
@@ -519,7 +590,7 @@ public class Interpreter {
 	 * @param index the index of the line
 	 * @return the index of the line the execution should continue on
 	 */
-	private int handleDefinedStatement(Line line, int index) {
+	protected int handleDefinedStatement(Line line, int index) {
 		if(line.getSetupException() != null) {
 			throw line.getSetupException();
 		}
@@ -668,8 +739,9 @@ public class Interpreter {
 	 * @param tokens the tokenization of the line to check
 	 * @return whether the line represents an initialization statement
 	 */
-	protected static final boolean isInitialization(ArrayList<Token> tokens) {
-		ArrayList<Token> typeTokens = getTypeName(tokens, 0);
+	protected static final boolean isInitialization(RunConfigurations config,
+			ArrayList<Token> tokens) {
+		ArrayList<Token> typeTokens = getTypeName(config, tokens, 0);
 		if(typeTokens == null)
 			return false;
 		
@@ -726,8 +798,8 @@ public class Interpreter {
 		int catchEnd = source.getBlockEnd(tryEnd + 1);
 		
 		
-		CatchInterpreter catchInterpreter = new CatchInterpreter(this, source, tryEnd + 2, catchEnd);
-		TryInterpreter tryInterpreter = new TryInterpreter(this, source, index + 1, tryEnd,
+		CatchInterpreter catchInterpreter = new CatchInterpreter(this, tryEnd + 2, catchEnd);
+		TryInterpreter tryInterpreter = new TryInterpreter(this, index + 1, tryEnd,
 			catchInterpreter);
 		
 		line.setStatment(Statement.TRY);
@@ -743,7 +815,8 @@ public class Interpreter {
 	 */
 	private void setupIf(ArrayList<Token> tokens, Line line, int index) {
 		if(!tokens.get(tokens.size() - 1).getToken().equals(":")) {
-			throw new SyntaxException(Statement.IF.getKeyword() + " statements must end in a colon.", line);
+			throw new SyntaxException(Statement.IF.getKeyword() +
+				" statements must end in a colon.", line);
 		}
 		IfExecutor ifExec = new IfExecutor();
 		
@@ -764,8 +837,8 @@ public class Interpreter {
 				lineTokenization = Tokenizer.tokenize(currentContent, current);
 				if(isElseIf(lineTokenization)) {
 					if(!lineTokenization.get(lineTokenization.size() - 1).getToken().equals(":")) {
-						throw new SyntaxException(Statement.ELSE.getKeyword() + " " + Statement.IF.getKeyword() + 
-							" statements must end in a colon.", line);
+						throw new SyntaxException(Statement.ELSE.getKeyword() + " " +
+							Statement.IF.getKeyword() + " statements must end in a colon.", line);
 					}
 					startToken = 2;
 				} else if(isElse(lineTokenization)) {
@@ -782,13 +855,13 @@ public class Interpreter {
 			// If we're not done then we're still in an if/elif block. Add this to the executor.
 			if(!done) {
 				IfConditionInterpreter conditionInterpreter = new IfConditionInterpreter(this,
-					source, currentLine + 1, endCurrentBlock, lineTokenization,
+				    currentLine + 1, endCurrentBlock, lineTokenization,
 					startToken, lineTokenization.size() - 2);
 				ifExec.addCondition(conditionInterpreter);
 
 			// We're done if we've hit an else, so deal with that.
 			} else {
-				ElseInterpreter elseInterpreter = new ElseInterpreter(this, source, currentLine + 1,
+				ElseInterpreter elseInterpreter = new ElseInterpreter(this, currentLine + 1,
 					endCurrentBlock);
 				ifExec.setElseIntepreter(elseInterpreter);
 			}				
@@ -857,9 +930,8 @@ public class Interpreter {
 	 */
 	private void setupDoWhile(ArrayList<Token> whileTokens, Line doLine,
 			Line whileLine, int resumeLine) {		
-		DoWhileInterpreter doWhileInterpreter = new DoWhileInterpreter(this, source,
-				doLine.getNumber() + 1, whileLine.getNumber() - 1, whileLine, whileTokens, 1,
-				whileTokens.size() - 1);
+		DoWhileInterpreter doWhileInterpreter = new DoWhileInterpreter(this, doLine.getNumber() + 1,
+			whileLine.getNumber() - 1, whileLine, whileTokens, 1, whileTokens.size() - 1);
 
 		doLine.setStatment(Statement.DO_WHILE);
 		doLine.setData(doWhileInterpreter);
@@ -875,9 +947,8 @@ public class Interpreter {
 	 */
 	private void setupDoUntil(ArrayList<Token> untilTokens, Line doLine,
 			Line untilLine, int resumeLine) {
-		DoUntilInterpreter doUntilInterpreter = new DoUntilInterpreter(this, source,
-				doLine.getNumber() + 1, untilLine.getNumber() - 1, untilLine, untilTokens, 1,
-				untilTokens.size() - 1);
+		DoUntilInterpreter doUntilInterpreter = new DoUntilInterpreter(this, doLine.getNumber() + 1,
+			untilLine.getNumber() - 1, untilLine, untilTokens, 1, untilTokens.size() - 1);
 
 		doLine.setStatment(Statement.DO_UNTIL);
 		doLine.setData(doUntilInterpreter);
@@ -919,12 +990,12 @@ public class Interpreter {
 		
 		if(isOtherwise(forEndTokens)) {
 			int otherwiseEnd = source.getBlockEnd(forEnd + 1);
-			otherwise = new OtherwiseInterpreter(this, source, forEnd + 2, otherwiseEnd);
+			otherwise = new OtherwiseInterpreter(this, forEnd + 2, otherwiseEnd);
 			interpetationContineLine = otherwiseEnd;
 		}
 		
-		ForInterpreter forInterpreter = new ForInterpreter(this, getSourceCode(), index + 1, forEnd,
-			line, tokens, firstSeparator, secondSeparator, otherwise);
+		ForInterpreter forInterpreter = new ForInterpreter(this, index + 1, forEnd, line, tokens,
+			firstSeparator, secondSeparator, otherwise);
 
 		line.setStatment(Statement.FOR);
 		line.setData(forInterpreter);
@@ -951,12 +1022,12 @@ public class Interpreter {
 
 		if(isOtherwise(whileEndTokens)) {
 			int otherwiseEnd = source.getBlockEnd(whileEnd + 1);
-			otherwise = new OtherwiseInterpreter(this, source, whileEnd + 2, otherwiseEnd);
+			otherwise = new OtherwiseInterpreter(this, whileEnd + 2, otherwiseEnd);
 			interpetationContineLine = otherwiseEnd;
 		}
 
-		WhileInterpreter whileInterpreter = new WhileInterpreter(this, source, index + 1, whileEnd,
-			tokens, 1, tokens.size() - 2, otherwise);
+		WhileInterpreter whileInterpreter = new WhileInterpreter(this, index + 1, whileEnd, tokens,
+			1, tokens.size() - 2, otherwise);
 
 		line.setStatment(Statement.WHILE);
 		line.setData(whileInterpreter);
@@ -983,12 +1054,12 @@ public class Interpreter {
 
 		if(isOtherwise(untilEndTokens)) {
 			int otherwiseEnd = source.getBlockEnd(untilEnd + 1);
-			otherwise = new OtherwiseInterpreter(this, source, untilEnd + 2, otherwiseEnd);
+			otherwise = new OtherwiseInterpreter(this, untilEnd + 2, otherwiseEnd);
 			interpetationContineLine = otherwiseEnd;
 		}
 
-		UntilInterpreter untilInterpreter = new UntilInterpreter(this, source, index + 1, untilEnd,
-				tokens, 1, tokens.size() - 2, otherwise);
+		UntilInterpreter untilInterpreter = new UntilInterpreter(this, index + 1, untilEnd, tokens,
+			1, tokens.size() - 2, otherwise);
 
 		line.setStatment(Statement.UNTIL);
 		line.setData(untilInterpreter);
@@ -1095,7 +1166,10 @@ public class Interpreter {
 			returnType = Strings.VOID;
 			currToken++;
 		} else {
-			ArrayList<Token> typeTokens = getTypeName(tokens, currToken);
+			ArrayList<Token> typeTokens = getTypeName(config, tokens, currToken);
+			if(typeTokens == null) {
+				throw new SyntaxException("No specified return type.", line);
+			}
 			returnType = concatenate(typeTokens);
 			currToken += typeTokens.size();
 		}
@@ -1149,8 +1223,8 @@ public class Interpreter {
 		
 		int functionEnd = source.getBlockEnd(index);
 
-		FunctionInterpreter functionInterpreter = new FunctionInterpreter(this, getSourceCode(),
-			index + 1, functionEnd, returnType, name, leftArgs, rightArgs);
+		FunctionInterpreter functionInterpreter = new FunctionInterpreter(this, index + 1,
+			functionEnd, returnType, name, leftArgs, rightArgs);
 		FunctionVariable functionVariable = new FunctionVariable(functionInterpreter);
 		
 		line.setStatment(Statement.FUNCTION);
@@ -1188,7 +1262,7 @@ public class Interpreter {
 			int end, Line line) {
 		ArrayList<Pair<String, String>> arguments = new ArrayList<Pair<String, String>>();
 		for(int index = start; index < end; index++) {
-			ArrayList<Token> typeTokens = getTypeName(tokens, index);
+			ArrayList<Token> typeTokens = getTypeName(config, tokens, index);
 			if(typeTokens == null) {
 				throw new SyntaxException("Unknown parameter type " + tokens.get(index).getToken(),
 					line);
@@ -1216,7 +1290,7 @@ public class Interpreter {
 	 * @param index the index of the line
 	 */
 	private void setupInitialization(ArrayList<Token> tokens, Line line) {
-		ArrayList<Token> typeTokens = getTypeName(tokens, 0);
+		ArrayList<Token> typeTokens = getTypeName(config, tokens, 0);
 		String type = concatenate(typeTokens);
 		String name = tokens.get(typeTokens.size()).getToken();
 		
@@ -1250,22 +1324,12 @@ public class Interpreter {
 	 */
 	protected void doInitialization(String type, String name, Variable value, Line line) {
 		Variable store = null;
-		if(type.equals(Strings.BOOLEAN)) {
-			store = new BooleanVariable();
-		} else if(type.equals(Strings.INTEGER)) {
-			store = new IntegerVariable();
-		} else if(type.equals(Strings.DOUBLE)) {
-			store = new DoubleVariable();
-		} else if(type.equals(Strings.LONG)) {
-			store = new LongVariable();
-		} else if(type.equals(Strings.STRING)) {
-			store = new StringVariable();
-		} else if(type.equals(Strings.TYPE)) {
-			store = new TypeVariable();
-		} else if(type.startsWith("[")) {
+		if(type.startsWith("[")) {
 			store = new ArrayVariable(type);
+		} else {
+			store = config.createDefaultVariable(this, type);
 		}
-		
+
 		try {
 			store.assign(value);
 		} catch(UnsupportedOperatorException e) {
@@ -1305,9 +1369,9 @@ public class Interpreter {
 	 */
 	protected void handlePrint(Line line) {
 		if(line.getData() == null) {
-			System.out.println();
+			config.getOutputStream().println();
 		} else {
-			System.out.println(((ParseTreeNode)line.getData()).operate().getValue());
+			config.getOutputStream().println(((ParseTreeNode)line.getData()).operate().getValue());
 		}
 	}
 	
@@ -1326,8 +1390,8 @@ public class Interpreter {
 	 * @param line the line to execute
 	 * @return the line that should be next executed after this line
 	 */
-	protected void handleParse(Line line) {
-		((ParseTreeNode)line.getData()).operate().getValue();
+	protected Variable handleParse(Line line) {
+		return ((ParseTreeNode)line.getData()).operate().getValue();
 	}
 	
 	/**
@@ -1408,11 +1472,12 @@ public class Interpreter {
 	 * @param start the token at which the type name is thought to occur
 	 * @return the tokens of the type name, or null if there is no type name at the start index
 	 */
-	protected static ArrayList<Token> getTypeName(ArrayList<Token> tokens, int start) {
+	protected static ArrayList<Token> getTypeName(RunConfigurations config,
+			ArrayList<Token> tokens, int start) {
 		if(tokens.size() <= start)
 			return null;
 		ArrayList<Token> typeTokens = new ArrayList<Token>();
-		if(Strings.TYPES.contains(tokens.get(start).getToken())) {
+		if(config.isTypeName(tokens.get(start).getToken())) {
 			typeTokens.add(tokens.get(start));
 			return typeTokens;
 		}
@@ -1431,7 +1496,7 @@ public class Interpreter {
 		if(tokens.size() <= openBrackets + start) {
 			return null;
 		}
-		if(Strings.TYPES.contains(tokens.get(openBrackets + start).getToken())) {
+		if(config.isTypeName(tokens.get(openBrackets + start).getToken())) {
 			typeTokens.add(tokens.get(openBrackets + start));
 		} else {
 			return null;

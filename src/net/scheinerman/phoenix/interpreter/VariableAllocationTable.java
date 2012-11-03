@@ -164,4 +164,13 @@ public class VariableAllocationTable {
 		}
 		return null;
 	}
+	
+//	public void print() {
+//		System.out.println("===== [ START VAT ] =====");
+//		for(StackFrame frame : stack) {
+//			System.out.println(frame);
+//		}
+//		System.out.println(globalNamespace);
+//		System.out.println("====== [ END VAT ] ======");
+//	}
 }

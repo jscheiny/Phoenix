@@ -19,6 +19,7 @@ package net.scheinerman.phoenix.variables;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 
 /**
  * Represents a variable which is only produced as the return value of a void function. All
@@ -30,6 +31,25 @@ public class VoidVariable extends Variable {
 
 	private static final String TYPE_NAME = Interpreter.Strings.VOID;
 	
+	public static class Definition extends TypeDefinition<VoidVariable> {
+
+		public Definition() {
+			super(null);
+		}
+
+		@Override
+		public VoidVariable createDefaultVariable(Interpreter interpreter) {
+			return new VoidVariable();
+		}
+
+		@Override
+		public VoidVariable createFromLiteral(Interpreter interpreter, String literal,
+				Line source) {
+			return null;
+		}
+
+	}
+	
 	public VoidVariable() {
 		super(TYPE_NAME);
 	}
@@ -37,11 +57,6 @@ public class VoidVariable extends Variable {
 	@Override
 	public String stringValue() {
 		return TYPE_NAME;
-	}
-	
-	@Override
-	public String toString() {
-		return stringValue();
 	}
 
 	@Override

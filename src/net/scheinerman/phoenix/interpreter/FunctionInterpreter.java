@@ -37,16 +37,16 @@ public class FunctionInterpreter extends Interpreter {
 	private VariableAllocationTable parentVAT;
 
 	/** The declared return type of this function. */
-	private String returnType;
+	protected String returnType;
 	
 	/** The name of the function. */
-	private String name;
+	protected String name;
 	
 	/** The declared left-hand arguments of the function as a list of type-name pairs. */
-	private ArrayList<Pair<String, String>> leftArgs;
+	protected ArrayList<Pair<String, String>> leftArgs;
 
 	/** The declared right-hand arguments of the function as a list of type-name pairs. */
-	private ArrayList<Pair<String, String>> rightArgs; 
+	protected ArrayList<Pair<String, String>> rightArgs; 
 	
 	/**
 	 * Creates a new function interpreter. If there are no arguments on a side, then the
@@ -54,7 +54,6 @@ public class FunctionInterpreter extends Interpreter {
 	 * <code>null</code> or an empty list.
 	 * @param parent the interpreter creating this interpreter (not the one from which this function
 	 * might be called)
-	 * @param source the source code that is being interpreted
 	 * @param start the line on which to start interpreting
 	 * @param end the last line to interpret (the line at this index will be interpreted)
 	 * @param returnType the return type of the function
@@ -62,12 +61,12 @@ public class FunctionInterpreter extends Interpreter {
 	 * @param leftArgs the left-hand arguments as a list of type-name pairings
 	 * @param rightArgs the right-hand arguments as a list of type-name pairings
 	 */
-	public FunctionInterpreter(Interpreter parent, SourceCode source, int start, int end,
-			String returnType, String name, ArrayList<Pair<String, String>> leftArgs,
+	public FunctionInterpreter(Interpreter parent, int start, int end, String returnType,
+			String name, ArrayList<Pair<String, String>> leftArgs,
 			ArrayList<Pair<String, String>> rightArgs) {
-		super(parent, source, start, end);
+		super(parent, start, end);
 		parentVAT = parent.getVAT();
-
+	
 		this.returnType = returnType;
 		this.name = name;
 		this.leftArgs = leftArgs;
@@ -121,12 +120,14 @@ public class FunctionInterpreter extends Interpreter {
 		if(passed == null) return;
 		if(!(passed instanceof TupleVariable)) {
 			Pair<String, String> typeNamePair = declared.get(0);
+			passed.setLiteral(false);
 			vat.allocate(typeNamePair.snd, passed);
 		} else {
 			TupleVariable tuple = (TupleVariable)passed;
 			for(int index = 0; index < tuple.size(); index++) {
 				Pair<String, String> typeNamePair = declared.get(index);
 				Variable value = tuple.getElement(index);
+				value.setLiteral(false);
 				vat.allocate(typeNamePair.snd, value);
 			}
 		}
@@ -140,7 +141,7 @@ public class FunctionInterpreter extends Interpreter {
 	 * @param declared the declared arguments
 	 * @return true if the passed arguments match the declared arguments
 	 */
-	private boolean checkArguments(Variable passed, ArrayList<Pair<String, String>> declared) {
+	protected boolean checkArguments(Variable passed, ArrayList<Pair<String, String>> declared) {
 		if(declared == null || declared.size() == 0) {
 		   if(passed != null) {
 			   return false;

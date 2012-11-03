@@ -1,0 +1,7 @@
+Phoenix: Basilisk (v.2.0.1 Beta) Interactive Shell
+
+Phoenix is a simple interpreted programming language written in Java
+and designed to be used as a scripting language for Java applications.
+
+Phoenix was designed and created by Jonah Scheinerman. Visit
+http://www.scheinerman.net/jonah/phoenix.html for more information.

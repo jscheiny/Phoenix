@@ -20,17 +20,55 @@ package net.scheinerman.phoenix.variables;
 
 import net.scheinerman.phoenix.exceptions.*;
 import net.scheinerman.phoenix.interpreter.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 
+/**
+ * A variable that contains a boolean value. The type name of this variable is 'bool'.
+ *
+ * @author Jonah Scheinerman
+ */
 public class BooleanVariable extends Variable {
 
+	/** The variable type name, 'bool'. */
 	private static final String TYPE_NAME = Interpreter.Strings.BOOLEAN;
 
+	public static class Definition extends TypeDefinition<BooleanVariable> {
+
+		public Definition() {
+			super(TYPE_NAME);
+		}
+
+		@Override
+		public BooleanVariable createDefaultVariable(Interpreter interpreter) {
+			return new BooleanVariable();
+		}
+
+		@Override
+		public BooleanVariable createFromLiteral(Interpreter interpreter, String literal,
+				Line source) {
+			if(literal.equals(Interpreter.Strings.TRUE)) {
+				return new BooleanVariable(true);
+			}
+			if(literal.equals(Interpreter.Strings.FALSE)) {
+				return new BooleanVariable(false);
+			}
+			return null;
+		}
+
+	}
+	
+	/** The boolean value of this variable. */
 	private boolean value;
 	
+	/** Create a new boolean variable with value false. */
 	public BooleanVariable() {
 		this(false);
 	}
 	
+	/**
+	 * Create a new boolean variable with the given value.
+	 * @param value the value of the variable
+	 */
 	public BooleanVariable(boolean value) {
 		super(TYPE_NAME);
 		this.value = value;
@@ -40,12 +78,11 @@ public class BooleanVariable extends Variable {
 	public String stringValue() {
 		return "" + value;
 	}
-	
-	@Override
-	public String toString() {
-		return "" + value;
-	}
-	
+
+	/**
+	 * Returns the boolean value of this variable.
+	 * @return the boolean value of this variable
+	 */
 	public boolean getValue() {
 		return value;
 	}
@@ -58,36 +95,43 @@ public class BooleanVariable extends Variable {
 		throw new UnsupportedOperatorException();
 	}
 	
+	/** Unsupported operator. */
 	@Override
 	public Variable add(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable subtract(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable multiply(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable divide(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable mod(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable exponentiate(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable negate() {
 		throw new UnsupportedOperationException();
@@ -109,21 +153,25 @@ public class BooleanVariable extends Variable {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public BooleanVariable lessThan(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public BooleanVariable lessThanOrEqual(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public BooleanVariable greaterThan(Variable x) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public BooleanVariable greaterThanOrEqual(Variable x) {
 		throw new UnsupportedOperatorException();
@@ -150,11 +198,13 @@ public class BooleanVariable extends Variable {
 		return new BooleanVariable(!value);
 	}
 
+	/** Unsupported operator. */
 	@Override
 	public Variable call(Variable left, Variable right) {
 		throw new UnsupportedOperatorException();
 	}
 
+	/** Pass by value. */
 	@Override
 	public Variable passValue() {
 		return new BooleanVariable(value);
