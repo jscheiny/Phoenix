@@ -49,6 +49,7 @@ public class FunctionVariable extends Variable {
 
 	public FunctionVariable(FunctionInterpreter interpreter) {
 		super(TYPE_NAME);
+		setLiteral(false);
 		this.interpreter = interpreter;
 	}
 	

@@ -21,6 +21,7 @@ package net.scheinerman.phoenix.interpreter;
 import java.util.*;
 
 import net.scheinerman.phoenix.exceptions.*;
+import net.scheinerman.phoenix.interpreter.SourceCode.Line;
 import net.scheinerman.phoenix.variables.*;
 
 import com.sun.tools.javac.util.*;
@@ -71,6 +72,35 @@ public class FunctionInterpreter extends Interpreter {
 		this.name = name;
 		this.leftArgs = leftArgs;
 		this.rightArgs = rightArgs;
+		
+		boolean docs = false;
+		
+		if(start == -1 || end == -1) return;
+
+		int index;
+		for(index = start; index <= end; index++) {
+			Line line = getSourceCode().line(index);
+			if(!line.getLineContent().equals("")) {
+				docs = false;
+				break;
+			}
+			if(line.getUnchangedLine().trim().startsWith("///")) {
+				docs = true;
+				break;
+			}
+		}
+		
+		if(docs) {
+			Line line = getSourceCode().line(index);
+			while(line.getUnchangedLine().trim().startsWith("///")) {
+				String comment = line.getUnchangedLine().trim().substring(3).trim();
+				System.out.println(comment);
+				
+				
+				index++;
+				line = getSourceCode().line(index);
+			}
+		}
 	}
 	
 	/**
